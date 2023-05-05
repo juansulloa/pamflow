@@ -1,3 +1,4 @@
+# Utility functions to compute graphical soundscapes
 library(tuneR)
 library(seewave)
 library(ggplot2)

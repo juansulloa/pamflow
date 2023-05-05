@@ -9,8 +9,10 @@ monitoring
 import os
 import shutil
 import pandas as pd
+import numpy as np
 from pathlib import Path
 from os import listdir
+from maad import sound, util
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -183,9 +185,46 @@ def random_sample_metadata(df, n_samples_per_site=10, hour_sel=None, random_stat
 
     return df_out
 
-def copy_file_list(flist, path_save)
+def copy_file_list(flist, path_save):
     #%% Copy selected files to a new folder
     for _, row in flist.iterrows():
         src_file = row.path_audio
         dst_file = path_save + row.fname
         shutil.copyfile(src_file, dst_file)
+
+def concat_audio(flist, sample_len=1, display=False):
+    """ Concatenates samples using a list of audio files
+
+    Parameters
+    ----------
+    flist : list or pandas Series
+        List of files to concatenate
+    sample_len : float, optional
+        Length in seconds of each sample, default is 1 second
+    display : bool, optional
+        If true displays the audio spectrogram, by default False
+    
+    Return
+    ------
+    """
+    
+    # Compute long wav
+    long_wav = list()
+    for idx, fname in enumerate(flist):
+        s, fs = sound.load(fname)
+        s = sound.trim(s, fs, 0, sample_len)
+        long_wav.append(s)
+
+    long_wav = np.concatenate(long_wav)
+    
+    # Plot
+    if display:
+        Sxx, tn, fn, ext = sound.spectrogram(
+            long_wav, fs, window='hann', nperseg=1024, noverlap=512)
+        fig, ax = plt.subplots(1,1, figsize=(10,3))
+        util.plot_spectrogram(Sxx, extent=[0, 24, 0, 11],
+                            ax=ax, db_range=80, gain=25, colorbar=False)
+        ax.set_xlabel('Time [Hours]')
+        ax.set_xticks(range(0,25,4))
+
+    return long_wav, fs

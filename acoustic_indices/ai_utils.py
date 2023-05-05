@@ -1,9 +1,10 @@
+""" Utility functions to compute acoustic indices """
+
 import pandas as pd
 from maad import sound, features, util
 import os
 import seaborn as sns
 import matplotlib.pyplot as plt
-
 
 def compute_acoustic_indices(s, Sxx, tn, fn):
     """

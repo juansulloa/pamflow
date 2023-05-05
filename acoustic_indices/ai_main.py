@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Compute acoustic indices on a list of files.
 
@@ -19,7 +17,7 @@ Acoustic indices computed include:
 import pandas as pd
 import os
 from maad import sound
-from ai_utils import compute_acoustic_indices
+from ai_utils import compute_acoustic_indices, plot_acoustic_indices
 
 #%% Set variables
 path_flist_sel = '/Volumes/lacie_exfat/Cataruben/metadata/metadata_clean.csv'
@@ -59,3 +57,5 @@ for sensor_name in sensor_list:
     df_indices.to_csv(path_save_df+sensor_name+'_indices.csv', index=False)
 
 #%% Plot indices to check consistency
+df_indices = pd.read_csv('../../dataframes_ai/CAT007_indices.csv')
+plot_acoustic_indices(df_indices)
