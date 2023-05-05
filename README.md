@@ -47,12 +47,12 @@ The directory structure of this project is as follows:
 
 ```
 ├── data
-│   ├── location1
+│   ├── SITE001
 │   │   ├── recording1.wav
 │   │   └── recording2.wav
-│   ├── location2
+│   ├── SITE002
 │   │   └── recording3.wav
-│   └── location3
+│   └── SITE003
 │       └── recording4.wav
 ├── workflows
 │   ├── config.yaml
