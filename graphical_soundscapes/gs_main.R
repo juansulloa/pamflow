@@ -1,0 +1,42 @@
+## SOUNDSCAPE CHARACTERIZATION
+# References
+# Campos‐Cerqueira, M., et al., 2020. How does FSC forest certification affect the acoustically active fauna in Madre de Dios, Peru? Remote Sensing in Ecology and Conservation 6, 274–285. https://doi.org/10.1002/rse2.120
+# Furumo, P.R., Aide, T.M., 2019. Using soundscapes to assess biodiversity in Neotropical oil palm landscapes. Landscape Ecology 34, 911–923.
+# Campos-Cerqueira, M., Aide, T.M., 2017. Changes in the acoustic structure and composition along a tropical elevational gradient. JEA 1, 1–1. https://doi.org/10.22261/JEA.PNCO7I
+source('gs_utils.R')
+library(viridis)
+library(vegan)
+
+## SET VARIABLES
+path_audio_dataset = '/Volumes/lacie_exfat/Cataruben/audio/'  # location of audio dataset
+path_save_gs = '../../dataframes_gs/'  # location to save the dataframe
+path_metadata = '../../metadata/metadata_clean.csv'  # location to metadata information
+path_save_fig = '../../figures/'  # location to save the figure
+
+# 1. READ METADATA
+df = read.csv(path_metadata)
+df$path_audio = as.character(df$path_audio)
+df$time = format(strptime(df$date, format = "%Y-%m-%d %H:%M:%S"), format = "%H:%M:%S")
+sites = unique(df$site)
+
+## 2. REMOVE RAIN DATA
+# This is an advanced feature and first requires the development of a rain detector
+
+## 3. COMPUTE GRAPH SOUNDSCAPE FOR EACH RECORDING AND SAVE PLOT
+# es necesario eliminar CAT004, CAT007, CAT008 y CAT010
+sites = sites[-c(1, 2)]
+for(site in sites){
+    # set dataframe and compute graphical soundscape
+    df_site = df[df$site==site,]
+    gs = graphical_soundscape(df_site, spec_wl=256, fpeaks_th=30, fpeaks_f=0, verbose=T)
+    
+    # save graph soundscape
+    fname_save_gs = paste(path_save_gs, site, '.csv', sep='')
+    write.csv(gs, file=fname_save_gs, row.names = F)
+    
+    # save fig
+    fname_save_fig = paste(path_save_fig, site, '.png', sep='')
+    png(fname_save_fig)
+    plot_graphical_soundscape(gs)
+    dev.off()
+    }
