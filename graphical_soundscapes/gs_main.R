@@ -6,29 +6,29 @@
 source('gs_utils.R')
 library(viridis)
 library(vegan)
+library(yaml)
 
-## SET VARIABLES
-path_audio_dataset = '/Volumes/lacie_exfat/Cataruben/audio/'  # location of audio dataset
-path_save_gs = '../../dataframes_gs/'  # location to save the dataframe
-path_metadata = '../../metadata/metadata_clean.csv'  # location to metadata information
-path_save_fig = '../../figures/'  # location to save the figure
+## LOAD CONFIGURATION VARIABLES
+config <- yaml.load_file('../config.yaml')
+path_audio_dataset = config$input_data$path_audio  # location of audio dataset
+path_save_gs = config$graph_soundscapes$path_save_gs  # location to save the dataframe
+path_metadata = config$preprocessing$path_save_metadata_clean  # location to metadata information
+path_save_fig = config$graph_soundscapes$path_save_fig  # location to save the figure
 
 # 1. READ METADATA
 df = read.csv(path_metadata)
 df$path_audio = as.character(df$path_audio)
 df$time = format(strptime(df$date, format = "%Y-%m-%d %H:%M:%S"), format = "%H:%M:%S")
-sites = unique(df$site)
+sites = c('CAT001', 'CAT002', 'CAT009', 'CAT011')
 
 ## 2. REMOVE RAIN DATA
 # This is an advanced feature and first requires the development of a rain detector
 
 ## 3. COMPUTE GRAPH SOUNDSCAPE FOR EACH RECORDING AND SAVE PLOT
-# es necesario eliminar CAT004, CAT007, CAT008 y CAT010
-sites = sites[-c(1, 2)]
 for(site in sites){
     # set dataframe and compute graphical soundscape
     df_site = df[df$site==site,]
-    gs = graphical_soundscape(df_site, spec_wl=256, fpeaks_th=30, fpeaks_f=0, verbose=T)
+    gs = graphical_soundscape(df_site, spec_wl=256, fpeaks_th=10, fpeaks_f=0, verbose=T)
     
     # save graph soundscape
     fname_save_gs = paste(path_save_gs, site, '.csv', sep='')

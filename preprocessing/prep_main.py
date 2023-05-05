@@ -10,23 +10,28 @@ The preprocessing step includes:
 
 import pandas as pd
 from maad import util
+import yaml
 from prep_utils import (add_file_prefix, 
                         metadata_summary,
                         plot_sensor_deployment,
                         random_sample_metadata,
                         concat_audio)
 
-#%% 0. Set variables
-folder_name = '/Volumes/lacie_exfat/Cataruben/audio/'
-path_save_metadata_full = '../../metadata/metadata_full.csv'
-path_save_metadata_clean = '../../metadata/metadata_clean.csv'
-path_save_metadata_sample = '../../metadata/metadata_sample.csv'
+#%% Load configuration files
+# Open the config file and load its contents into a dictionary
+with open('../config.yaml', 'r') as f:
+    config = yaml.safe_load(f)
+
+path_audio = config['input_data']['path_audio']
+path_save_metadata_full = config['preprocessing']['path_save_metadata_full']
+path_save_metadata_clean = config['preprocessing']['path_save_metadata_clean']
+path_save_metadata_sample = config['preprocessing']['path_save_metadata_sample']
 
 #%% 1. Add file prefix according to file names
-add_file_prefix(folder_name, recursive=True)
+add_file_prefix(path_audio, recursive=True)
 
 #%% 2. Get audio metadata and verify acoustic sampling quality
-df_full = util.get_metadata_dir(folder_name, verbose=True)
+df_full = util.get_metadata_dir(path_audio, verbose=True)
 df_full['site'] = df_full.fname.str.split('_').str[0]  # include site column
 df_full = df_full.loc[~df_full.sample_rate.isna(),:]  # remove nan values
 df_full.loc[:,'date_fmt'] = pd.to_datetime(df_full.date,  format='%Y-%m-%d %H:%M:%S')

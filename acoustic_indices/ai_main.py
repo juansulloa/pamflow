@@ -14,19 +14,25 @@ Acoustic indices computed include:
 
 """
 
-import pandas as pd
 import os
+import yaml
+import pandas as pd
 from maad import sound
 from ai_utils import compute_acoustic_indices, plot_acoustic_indices
 
 #%% Set variables
-path_flist_sel = '/Volumes/lacie_exfat/Cataruben/metadata/metadata_clean.csv'
-path_audio = '/Volumes/lacie_exfat/Cataruben/audio/'
-path_save_df = './dataframes/'
-target_fs = 48000  # if resample is needed
+#%% Load configuration files
+# Open the config file and load its contents into a dictionary
+with open('../config.yaml', 'r') as f:
+    config = yaml.safe_load(f)
+
+path_audio = config['input_data']['path_audio']
+path_metadata_clean = config['preprocessing']['path_save_metadata_clean']
+path_save_df = config['acoustic_indices']['path_save_df']
+target_fs = config['acoustic_indices']['target_fs']
 
 #%% Load data and flist of selected files
-flist = pd.read_csv(path_flist_sel)
+flist = pd.read_csv(path_metadata_clean)
 sensor_list = flist.sensor_name.unique()
 
 #%% Loop through sites

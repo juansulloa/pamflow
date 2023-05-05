@@ -1,0 +1,21 @@
+# Location of input data
+input_data:
+  path_audio: '/Volumes/lacie_exfat/Cataruben/audio/'
+
+# Configuration parameters related to the preprocessing workflow
+preprocessing:
+  folder_name: '/Volumes/lacie_exfat/Cataruben/audio/'
+  path_save_metadata_full: '../../output/metadata/metadata_full.csv'
+  path_save_metadata_clean: '../../output/metadata/metadata_clean.csv'
+  path_save_metadata_sample: '../../output/metadata/metadata_sample.csv'
+
+# Configuration parameters related to the acoustic indices workflow
+acoustic_indices:
+  path_save_df: '../../outputs/dataframes_ai/'
+  path_save_fig: '../../outputs/figures/'  # location to save the figure
+  target_fs: 48000  # sampling rate for analysis
+
+# Configuration parameters related to the graphical soundscapes workflow
+graph_soundscapes:
+  path_save_gs: '../../outputs/dataframes_gs/'  # location to save the dataframe
+  path_save_fig: '../../outputs/figures/'  # location to save the figure
