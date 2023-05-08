@@ -9,7 +9,7 @@ The preprocessing step includes:
 """
 
 import pandas as pd
-from maad import util
+from maad import sound, util
 import yaml
 from prep_utils import (add_file_prefix, 
                         metadata_summary,
@@ -61,6 +61,7 @@ sample_len = 10
 # select files to create timelapse
 pd.crosstab(df.site, df.date_fmt.dt.hour) # check hours that can be selected in all sites
 hours_sel = [0, 5, 6, 12, 19, 23]
+hours_sel = np.arange(0,23)
 df_timelapse = pd.DataFrame()
 for site, df_site in df.groupby('site'):
     aux = df_site.loc[df_site['date_fmt'].dt.hour.isin(hours_sel),:]
@@ -68,5 +69,7 @@ for site, df_site in df.groupby('site'):
     df_timelapse = pd.concat([df_timelapse, aux])
 
 # create time lapse
-df_site = df_timelapse.loc[df_timelapse.site=='CAT002',:]
-long_wav, fs = concat_audio(df_site['path_audio'], sample_len=10, display=True)
+for site, df_site in df_timelapse.groupby('site'):
+    print(site)
+    #long_wav, fs = concat_audio(df_site['path_audio'], sample_len=10, display=True)
+    #sound.write('../../output/figures/'+site+'_timelapse.wav', fs, long_wav, bit_depth=16)
