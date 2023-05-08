@@ -28,6 +28,7 @@ sites = c('CAT001', 'CAT002', 'CAT009', 'CAT011')
 for(site in sites){
     # set dataframe and compute graphical soundscape
     df_site = df[df$site==site,]
+    df_site <- df_site[order(df_site$date), ]
     gs = graphical_soundscape(df_site, spec_wl=256, fpeaks_th=20, fpeaks_f=0, verbose=T)
     
     # save graph soundscape
