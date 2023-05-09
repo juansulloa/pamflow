@@ -1,10 +1,9 @@
 # Location of input data
 input_data:
-  path_audio: '/Volumes/lacie_exfat/Cataruben/audio/'
+  path_audio: '../../audio/'
 
 # Configuration parameters related to the preprocessing workflow
 preprocessing:
-  folder_name: '/Volumes/lacie_exfat/Cataruben/audio/'
   path_save_metadata_full: '../../output/metadata/metadata_full.csv'
   path_save_metadata_clean: '../../output/metadata/metadata_clean.csv'
   path_save_metadata_sample: '../../output/metadata/metadata_sample.csv'

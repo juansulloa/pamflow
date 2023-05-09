@@ -7,10 +7,10 @@ The preprocessing step includes:
     - Take a small sample of the data for further manual analisys
 
 """
-
+import os
+import yaml
 import pandas as pd
 from maad import sound, util
-import yaml
 from prep_utils import (add_file_prefix, 
                         metadata_summary,
                         plot_sensor_deployment,
@@ -22,7 +22,7 @@ from prep_utils import (add_file_prefix,
 with open('../config.yaml', 'r') as f:
     config = yaml.safe_load(f)
 
-path_audio = config['input_data']['path_audio']
+path_audio = os.path.realpath(config['input_data']['path_audio'])
 path_save_metadata_full = config['preprocessing']['path_save_metadata_full']
 path_save_metadata_clean = config['preprocessing']['path_save_metadata_clean']
 path_save_metadata_sample = config['preprocessing']['path_save_metadata_sample']
@@ -39,7 +39,7 @@ df_full.loc[:,'date_fmt'] = pd.to_datetime(df_full.date,  format='%Y-%m-%d %H:%M
 # Verify acoustic sampling quality
 metadata_summary(df_full)
 
-# Remove sites that have bad configuration
+# Remove manually sites that have bad configuration
 rm_sites = ['CAT003', 'CAT005', 'CAT006', 'CAT012']
 df = df_full.loc[~df_full.site.isin(rm_sites),]
 plot_sensor_deployment(df)
@@ -71,5 +71,5 @@ for site, df_site in df.groupby('site'):
 # create time lapse
 for site, df_site in df_timelapse.groupby('site'):
     print(site)
-    #long_wav, fs = concat_audio(df_site['path_audio'], sample_len=10, display=True)
-    #sound.write('../../output/figures/'+site+'_timelapse.wav', fs, long_wav, bit_depth=16)
+    long_wav, fs = concat_audio(df_site['path_audio'], sample_len=5, display=True)
+    sound.write('../../output/figures/'+site+'_timelapse.wav', fs, long_wav, bit_depth=16)
