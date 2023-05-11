@@ -134,3 +134,30 @@ def graphical_soundscape(
     res["time"] = (df.time / 10000).astype(int).to_numpy()
 
     return res.groupby("time").mean()
+
+def plot_graph(graph, ax=None):
+    """ Plots a graphical soundscape
+
+    Parameters
+    ----------
+    graph : pandas.Dataframe
+        A graphical soundscape as pandas dataframe with index as time and frequency as columns
+    ax : matplotlib.axes, optional
+        Axes for subplots. If not provided it creates a new figure, by default None.
+
+    Returns
+    -------
+    ax
+        Axes of the figure
+    """
+    if ax == None:
+        fig, ax = plt.subplots()
+
+    ax.imshow(graph.values.T, aspect='auto', origin='lower')
+    ax.set_xlabel('Time (h)')
+    ax.set_ylabel('Frequency (Hz)')
+    ytick_idx = np.arange(0, graph.shape[1], 20).astype(int)
+    ax.set_yticks(ytick_idx)
+    ax.set_yticklabels(graph.columns[ytick_idx].astype(int).values)
+
+    return ax

@@ -6,7 +6,7 @@ WARNING: THIS SCRIPT IS UNDER CONSTRUCTION
 import pandas as pd
 import yaml
 from maad import sound
-from gs_utils import spectrogram_local_max, graphical_soundscape
+from gs_utils import spectrogram_local_max, graphical_soundscape, plot_graph
 import matplotlib.pyplot as plt
 
 #%% Load configuration files
@@ -29,7 +29,8 @@ df = pd.read_csv(path_metadata)
 df_site = df.loc[df['site']=='CAT002',:].sample(40).reset_index(drop=True)
 graph = graphical_soundscape(df_site,
                              target_fs, nperseg, noverlap, db_range, min_peak_distance, min_peak_amplitude)
-plt.imshow(graph.values.T, aspect='auto', origin='lower')
+
+plot_graph(graph)
 
 #%%
 s, fs = sound.load('/Volumes/lacie_exfat/Cataruben/audio/CAT002/CAT002_20221231_070000.WAV')
