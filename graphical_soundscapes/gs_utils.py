@@ -49,7 +49,7 @@ def spectrogram_local_max(
 
     Returns
     -------
-    fpeaks: pandas Series
+    peak_density: pandas Series
         Normalized count of peaks per frequency bin.
     """
 
@@ -62,13 +62,6 @@ def spectrogram_local_max(
         Sxx_db, min_distance=min_peak_distance, threshold_abs=min_peak_amplitude
     )
 
-    # Count number of peaks at each frequency bin and normalize per time
-    times, freqs = peaks[:, 1], peaks[:, 0]
-    freq_idx, count_freq = np.unique(freqs, return_counts=True)
-    count_peak = np.zeros(fn.shape)
-    count_peak[freq_idx] = count_freq / len(tn)
-    fpeaks = pd.Series(index=fn, data=count_peak)
-
     if display == True:
         fig, ax = plt.subplots(nrows=1, figsize=(10, 5))
         ax.imshow(Sxx_db, cmap="gray", aspect="auto", origin="lower", extent=ext)
@@ -80,7 +73,7 @@ def spectrogram_local_max(
             edgecolor="yellow",
         )
 
-    return fpeaks
+    return tn[peaks[:, 1]], fn[peaks[:, 0]] 
 
 
 def graphical_soundscape(
@@ -117,7 +110,7 @@ def graphical_soundscape(
         # Load data
         s, fs = sound.load(df_aux.path_audio)
         s = sound.resample(s, fs, target_fs, res_type="kaiser_fast")
-        fpeaks = spectrogram_local_max(
+        peak_time, peak_freq = spectrogram_local_max(
             s,
             target_fs,
             nperseg,
@@ -126,10 +119,20 @@ def graphical_soundscape(
             min_peak_distance,
             min_peak_amplitude,
         )
+        
+        # Count number of peaks at each frequency bin
+        _, tn, fn, _ = sound.spectrogram(s, fs, nperseg=nperseg, noverlap=noverlap)
+        freq_idx, count_freq = np.unique(peak_freq, return_counts=True)
+        count_peak = np.zeros(fn.shape)
+        bool_index = np.isin(fn, freq_idx)
+        indices = np.where(bool_index)[0]
+        count_peak[indices] = count_freq / len(tn)
+        peak_density = pd.Series(index=fn, data=count_peak)
 
-        fpeaks = (fpeaks > 0).astype(int)
-        fpeaks.name = os.path.basename(df_aux.path_audio)
-        res = pd.concat([res, fpeaks.to_frame().T])
+        # Normalize per time
+        peak_density = (peak_density > 0).astype(int)
+        peak_density.name = os.path.basename(df_aux.path_audio)
+        res = pd.concat([res, peak_density.to_frame().T])
 
     res["time"] = (df.time / 10000).astype(int).to_numpy()
 
