@@ -67,8 +67,9 @@ def add_file_prefix(folder_name: str, recursive:bool=False) -> None:
     else:
         flist = list(folder_path.glob('*.WAV')) + list(folder_path.glob('*.wav'))
 
+    # remove files that already have the parent directory name and hidden files
     flist = [f for f in flist if (not f.name.startswith(f.parent.name+'_'))]
-    flist = [f for f in folder_path.glob('[!.]*.WAV')] + [f for f in folder_path.glob('[!.]*.wav')]
+    flist = [f for f in flist if not f.name.startswith('.')]
 
     print(f'Number of WAVE files detected with no prefix: {len(flist)}')
 
