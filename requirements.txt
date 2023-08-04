@@ -3,4 +3,4 @@ numpy==1.23.5
 pandas==1.5.4
 scipy==1.9.3
 seaborn==0.12.2
-scikit-maad==1.4.0a0
+scikit-maad==1.4.0
