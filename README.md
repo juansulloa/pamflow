@@ -40,7 +40,7 @@ To use this project, follow these general steps:
     - Rename the dorectory where you have this repository as 'workflows'.
     - Create the output directory and its subdirectories 'figures' and 'metadata'.
 2. Edit the `config.yaml` file in the root directory to point to your sound files and adjust the settings according to your analysis needs.
-3. Run the Jupyter notebooks in the `notebooks/` directory to extract features from your sound files and visualize the results. 
+3. Run the `*_main.py` scripts from each directory to prepare the data, extract features from your sound files and visualize the results. 
 
 The Jupyter notebooks include detailed explanations of each step in the analysis process, including loading sound data, feature extraction, data visualization, and statistical analysis.
 
