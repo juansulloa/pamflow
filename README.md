@@ -42,7 +42,7 @@ To use this project, follow these general steps:
 2. Edit the `config.yaml` file in the root directory to point to your sound files and adjust the settings according to your analysis needs.
 3. Run the `*_main.py` scripts from each directory to prepare the data, extract features from your sound files and visualize the results. 
 
-The Jupyter notebooks include detailed explanations of each step in the analysis process, including loading sound data, feature extraction, data visualization, and statistical analysis.
+The scripts include explanations of each step in the analysis process, including loading sound data, feature extraction, data visualization, and statistical analysis.
 
 ## Directory Structure
 
