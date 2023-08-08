@@ -50,12 +50,12 @@ df_sample = random_sample_metadata(
 df_sample.to_csv(path_save_metadata_sample, index=False)
 
 #%% 4. Sample audio for overall examination - timelapse soundscapes
-df.loc[:,'date_fmt'] = pd.to_datetime(df.loc[:,'date'],  format='%Y-%m-%d %H:%M:%S')
-sample_len = 10
+sample_len = 5
+hours_sel = np.arange(0,23)
 
+df.loc[:,'date_fmt'] = pd.to_datetime(df.loc[:,'date'],  format='%Y-%m-%d %H:%M:%S')
 # select files to create timelapse
 pd.crosstab(df.site, df.date_fmt.dt.hour) # check hours that can be selected in all sites
-hours_sel = np.arange(0,23)
 df_timelapse = pd.DataFrame()
 for site, df_site in df.groupby('site'):
     aux = df_site.loc[df_site['date_fmt'].dt.hour.isin(hours_sel),:]
@@ -65,5 +65,8 @@ for site, df_site in df.groupby('site'):
 # create time lapse
 for site, df_site in df_timelapse.groupby('site'):
     print(site)
-    long_wav, fs = concat_audio(df_site['path_audio'], sample_len=5, display=True)
+    long_wav, fs = concat_audio(df_site['path_audio'],
+                                sample_len=sample_len, 
+                                verbose=True,
+                                display=True)
     sound.write('../../output/figures/'+site+'_timelapse.wav', fs, long_wav, bit_depth=16)

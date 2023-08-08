@@ -193,7 +193,7 @@ def copy_file_list(flist, path_save):
         dst_file = path_save + row.fname
         shutil.copyfile(src_file, dst_file)
 
-def concat_audio(flist, sample_len=1, display=False):
+def concat_audio(flist, sample_len=1, verbose=False, display=False):
     """ Concatenates samples using a list of audio files
 
     Parameters
@@ -212,6 +212,8 @@ def concat_audio(flist, sample_len=1, display=False):
     # Compute long wav
     long_wav = list()
     for idx, fname in enumerate(flist):
+        if verbose:
+            print(fname)
         s, fs = sound.load(fname)
         s = sound.trim(s, fs, 0, sample_len)
         long_wav.append(s)
