@@ -9,6 +9,7 @@ The preprocessing step includes:
 """
 import os
 import yaml
+import numpy as np
 import pandas as pd
 from maad import sound, util
 from prep_utils import (add_file_prefix, 
@@ -24,29 +25,23 @@ with open('../config.yaml', 'r') as f:
 
 path_audio = os.path.realpath(config['input_data']['path_audio'])
 path_save_metadata_full = config['preprocessing']['path_save_metadata_full']
-path_save_metadata_clean = config['preprocessing']['path_save_metadata_clean']
 path_save_metadata_sample = config['preprocessing']['path_save_metadata_sample']
 
 #%% 1. Add file prefix according to file names
 add_file_prefix(path_audio, recursive=True)
 
 #%% 2. Get audio metadata and verify acoustic sampling quality
-df_full = util.get_metadata_dir(path_audio, verbose=True)
-df_full['site'] = df_full.fname.str.split('_').str[0]  # include site column
-df_full = df_full.loc[~df_full.sample_rate.isna(),:]  # remove nan values
-df_full.loc[:,'date_fmt'] = pd.to_datetime(df_full.date,  format='%Y-%m-%d %H:%M:%S')
+df = util.get_metadata_dir(path_audio, verbose=True)
+df['site'] = df.fname.str.split('_').str[0]  # include site column
+df.dropna(inplace=True)  # remove problematic files
+df.loc[:,'date_fmt'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
 
 # Verify acoustic sampling quality
-metadata_summary(df_full)
-
-# Remove manually sites that have bad configuration
-rm_sites = ['CAT003', 'CAT005', 'CAT006', 'CAT012']
-df = df_full.loc[~df_full.site.isin(rm_sites),]
+metadata_summary(df)
 plot_sensor_deployment(df)
 
 # save dataframes to csv
-df_full.to_csv(path_save_metadata_full, index=False)
-df.to_csv(path_save_metadata_clean, index=False)
+df.to_csv(path_save_metadata_full, index=False)
 
 #%% 3. Sample audio for manual analisys
 peak_hours = ['05', '06', '07', '08', '17', '18', '19', '20']
@@ -60,7 +55,6 @@ sample_len = 10
 
 # select files to create timelapse
 pd.crosstab(df.site, df.date_fmt.dt.hour) # check hours that can be selected in all sites
-hours_sel = [0, 5, 6, 12, 19, 23]
 hours_sel = np.arange(0,23)
 df_timelapse = pd.DataFrame()
 for site, df_site in df.groupby('site'):
