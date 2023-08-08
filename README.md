@@ -35,7 +35,10 @@ pip install -r requirements.txt
 
 To use this project, follow these general steps:
 
-1. Organize your sound files into subdirectories based on the recording device.
+1. Organize directories
+    - Sound files must be organized into subdirectories based on the recording device.
+    - Rename the dorectory where you have this repository as 'workflows'.
+    - Create the output directory and its subdirectories 'figures' and 'metadata'.
 2. Edit the `config.yaml` file in the root directory to point to your sound files and adjust the settings according to your analysis needs.
 3. Run the Jupyter notebooks in the `notebooks/` directory to extract features from your sound files and visualize the results. 
 
