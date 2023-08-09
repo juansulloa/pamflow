@@ -32,8 +32,8 @@ add_file_prefix(path_audio, recursive=True)
 
 #%% 2. Get audio metadata and verify acoustic sampling quality
 df = util.get_metadata_dir(path_audio, verbose=True)
-df['site'] = df.fname.str.split('_').str[0]  # include site column
 df.dropna(inplace=True)  # remove problematic files
+df['site'] = df.fname.str.split('_').str[0]  # include site column
 df.loc[:,'date_fmt'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
 
 # Verify acoustic sampling quality
@@ -51,9 +51,8 @@ df_sample.to_csv(path_save_metadata_sample, index=False)
 
 #%% 4. Sample audio for overall examination - timelapse soundscapes
 sample_len = 5
-hours_sel = np.arange(0,23)
+hours_sel = np.arange(0,24)
 
-df.loc[:,'date_fmt'] = pd.to_datetime(df.loc[:,'date'],  format='%Y-%m-%d %H:%M:%S')
 # select files to create timelapse
 pd.crosstab(df.site, df.date_fmt.dt.hour) # check hours that can be selected in all sites
 df_timelapse = pd.DataFrame()
@@ -70,3 +69,7 @@ for site, df_site in df_timelapse.groupby('site'):
                                 verbose=True,
                                 display=True)
     sound.write('../../output/figures/'+site+'_timelapse.wav', fs, long_wav, bit_depth=16)
+
+#%% Check long soundscapes and if necesary make temporal adjustments to audio files
+# from prep_utils import rename_files_time_delay
+# rename_files_time_delay(path_data_site, delay_hours=-5, verbose=True)

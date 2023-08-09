@@ -10,6 +10,7 @@ import os
 import shutil
 import pandas as pd
 import numpy as np
+import glob
 from pathlib import Path
 from os import listdir
 from maad import sound, util
@@ -231,3 +232,25 @@ def concat_audio(flist, sample_len=1, verbose=False, display=False):
         ax.set_xticks(range(0,25,4))
 
     return long_wav, fs
+
+
+def rename_files_time_delay(path_dir, delay_hours=-5, verbose=False):
+    """ Rename files to fix time delay issues
+    When using audio recorders, time can be badly configured. This simple function allows to fix time dalys that occurr because of changes in time zones. The files must have a standard format.
+
+    """
+    if type(path_dir) == str:
+        flist = glob.glob(os.path.join(path_dir, '*.WAV'))
+        flist.sort()
+
+    for fname in flist:
+        fname_orig = util.filename_info(fname)
+        date_orig = pd.to_datetime(fname_orig['date'])
+        fname_ext = '.' + fname_orig['fname'].split('.')[1]
+        date_fixed = date_orig + pd.Timedelta(hours=delay_hours)
+        fname_fixed = fname_orig['sensor_name']+'_'+date_fixed.strftime('%Y%m%d_%H%M%S')+fname_ext
+        if verbose:
+            print(f'Renaming file: {os.path.basename(fname)} > {fname_fixed}')
+        
+        # rename file
+        os.rename(src=fname, dst=os.path.join(os.path.dirname(fname), fname_fixed))
