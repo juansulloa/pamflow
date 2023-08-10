@@ -27,12 +27,12 @@ with open('../config.yaml', 'r') as f:
     config = yaml.safe_load(f)
 
 path_audio = config['input_data']['path_audio']
-path_metadata_clean = config['preprocessing']['path_save_metadata_clean']
+path_metadata = config['preprocessing']['path_save_metadata_full']
 path_save_df = config['acoustic_indices']['path_save_df']
 target_fs = config['acoustic_indices']['target_fs']
 
 #%% Load data and flist of selected files
-flist = pd.read_csv(path_metadata_clean)
+flist = pd.read_csv(path_metadata)
 sensor_list = flist.sensor_name.unique()
 
 #%% Loop through sites
@@ -43,8 +43,8 @@ for sensor_name in sensor_list:
     for idx_row, row in flist_sel.iterrows():
         print(idx_row+1, '/', flist_sel.index[-1], ':', row.fname)
         # Load and resample to 48 kHz
-        s, fs = sound.load(os.path.join(path_audio, row.path_audio))
-        s = sound.resample(s, fs, target_fs, res_type='kaiser_fast')
+        s, fs = sound.load(row.path_audio)
+        s = sound.resample(s, fs, target_fs, res_type='scipy_poly')
     
         # Compute the amplitude spectrogram and acoustic indices
         Sxx, tn, fn, ext = sound.spectrogram(
@@ -57,11 +57,10 @@ for sensor_name in sensor_list:
         
         # append to dataframe
         df_indices = pd.concat([df_indices, df_indices_file.to_frame().T])
-        #df_indices = df_indices.append(df_indices_file, ignore_index=True)
         
     # Save dataframes
     df_indices.to_csv(path_save_df+sensor_name+'_indices.csv', index=False)
 
 #%% Plot indices to check consistency
-df_indices = pd.read_csv('../../dataframes_ai/CAT007_indices.csv')
-plot_acoustic_indices(df_indices)
+df_indices = pd.read_csv('../../output/dataframes_ai/P2-G087_indices.csv')
+plot_acoustic_indices(df_indices, alpha=0.3, size=0.5)

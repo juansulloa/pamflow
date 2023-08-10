@@ -68,19 +68,19 @@ def compute_acoustic_indices_single_file(path_audio):
     df_indices_file['fname'] = os.path.basename(path_audio)
     return df_indices_file
 
-def plot_acoustic_indices(df):
+def plot_acoustic_indices(df, alpha=0.5, size=3):
     # format data
     df.loc[:,'date_fmt'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
     df['time'] = df.date.str[11:13].astype(int)
     # plot
     fig, ax = plt.subplots(nrows=3, ncols=3, figsize=(10, 10))
-    sns.scatterplot(data=df, x='time', y='ACI', ax=ax[0,0])
-    sns.scatterplot(data=df, x='time', y='ADI', ax=ax[0,1])
-    sns.scatterplot(data=df, x='time', y='BI', ax=ax[0,2])
-    sns.scatterplot(data=df, x='time', y='H', ax=ax[1,0])
-    sns.scatterplot(data=df, x='time', y='Ht', ax=ax[1,1])
-    sns.scatterplot(data=df, x='time', y='Hf', ax=ax[1,2])
-    sns.scatterplot(data=df, x='time', y='NDSI', ax=ax[2,0])
-    sns.scatterplot(data=df, x='time', y='NP', ax=ax[2,1])
-    sns.scatterplot(data=df, x='time', y='SC', ax=ax[2,2])
+    sns.scatterplot(df, x='time', y='ACI', alpha=alpha, size=size, ax=ax[0,0])
+    sns.scatterplot(df, x='time', y='ADI', alpha=alpha, size=size, ax=ax[0,1])
+    sns.scatterplot(df, x='time', y='BI', alpha=alpha, size=size, ax=ax[0,2])
+    sns.scatterplot(df, x='time', y='H', alpha=alpha, size=size, ax=ax[1,0])
+    sns.scatterplot(df, x='time', y='Ht', alpha=alpha, size=size, ax=ax[1,1])
+    sns.scatterplot(df, x='time', y='Hf', alpha=alpha, size=size, ax=ax[1,2])
+    sns.scatterplot(df, x='time', y='NDSI', alpha=alpha, size=size, ax=ax[2,0])
+    sns.scatterplot(df, x='time', y='NP', alpha=alpha, size=size, ax=ax[2,1])
+    sns.scatterplot(df, x='time', y='SC', alpha=alpha, size=size, ax=ax[2,2])
     fig.set_tight_layout('tight')
