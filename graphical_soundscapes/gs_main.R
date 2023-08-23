@@ -19,7 +19,7 @@ path_save_fig = config$graph_soundscapes$path_save_fig  # location to save the f
 df = read.csv(path_metadata)
 df$path_audio = as.character(df$path_audio)
 df$time = format(strptime(df$date, format = "%Y-%m-%d %H:%M:%S"), format = "%H:%M:%S")
-sites = c('CAT001', 'CAT002', 'CAT009', 'CAT011')
+sites = unique(df$site)
 
 ## 2. REMOVE RAIN DATA
 # This is an advanced feature and first requires the development of a rain detector
