@@ -5,8 +5,11 @@ input_data:
 # Configuration parameters related to the preprocessing workflow
 preprocessing:
   path_save_metadata_full: '../../output/metadata/metadata_full.csv'
-  path_save_metadata_clean: '../../output/metadata/metadata_clean.csv'
+  path_save_metadata_clean: '../../output/metadata/metadata_t0-t1-t2.csv'
   path_save_metadata_sample: '../../output/metadata/metadata_sample.csv'
+  path_save_metadata_t0: '../../output/metadata/metadata_t0.csv'
+  path_save_metadata_t1: '../../output/metadata/metadata_t1.csv'
+  path_save_metadata_t2: '../../output/metadata/metadata_t2.csv'
 
 # Configuration parameters related to the acoustic indices workflow
 acoustic_indices:

@@ -2,27 +2,29 @@
 library(vegan)
 library(ade4)
 library(RColorBrewer)
-path_gs = './dataframes/'
+library(yaml)
+
+## LOAD CONFIGURATION VARIABLES
+config <- yaml.load_file('../config.yaml')
+path_gs = config$graph_soundscapes$path_save_gs  # location to save the dataframe
+path_gs = "../../output/dataframes_gs/python_gs/"
 sites = list.files(path_gs, pattern='*.csv')
 
 # load data and organize as a community matrix (sites as rows, soundscape component (species) as columns)
 tf_bins = list()
 for(site in sites){
   gs = read.csv(paste(path_gs,site,sep=''))
-  sensor_name = substr(site, 1, 4)
+  gs = gs[,19:129]
+  sensor_name = substr(site, 1, 10)
   tf_bins[[sensor_name]] = as.vector(t(gs[,-1]))
 }
 
 # list to dataframe
 tf_bins = as.data.frame(do.call(rbind, tf_bins))
-# remove outliers
-#xx = rowSums(tf_bins>0)
-#tf_bins = tf_bins[names(xx[xx>100]),]
-rm_rows = c('G005','G012','G068', 'G083', 'G024')
-tf_bins = tf_bins[!is.element(row.names(tf_bins), rm_rows),]
 
-# load environmental data
-anh_to_gxx = read.csv('../../env_data/ANH_to_GXX_Cobertura.csv')
+# remove outliers
+rm_rows = c('t0_P3-G035', 't1_P3-G035', 't2_P3-G035', 't0_P4-G033', 't1_P4-G033', 't2_P4-G033')
+tf_bins = tf_bins[!is.element(row.names(tf_bins), rm_rows),]
 
 # Compute NMDS
 tf_bins_nmds = metaMDS(tf_bins, distance = 'bray', trymax = 500)
@@ -30,18 +32,15 @@ stressplot(tf_bins_nmds)  # validate model fit
 tf_bins_nmds$stress
 
 # Plot results in 2D space
-colors = RColorBrewer::brewer.pal(6, 'Dark2')
+colors = RColorBrewer::brewer.pal(11, 'Paired')
 plt_data = as.data.frame(tf_bins_nmds$points)
-plt_data['sensor_name'] = row.names(plt_data)
-plt_data = merge(plt_data, anh_to_gxx, by = 'sensor_name')
+plt_data['period'] = substr(row.names(plt_data), 1, 2)
+plt_data['site'] = substr(row.names(plt_data), 4, 5)
 
-plot(plt_data[c('MDS1', 'MDS2')], col='gray', pch=16, bty='n',xlab='NMDS 1', ylab='NMDS 2', cex=0.5, cex.lab=1)
+plot(plt_data[c('MDS1', 'MDS2')], col='gray', pch=16, bty='n',xlab='NMDS 1', ylab='NMDS 2', cex=0.5, cex.lab=1, xlim=c(-1,1), ylim=c(-1,1))
 abline(v=0,col='gray',lty=2);abline(h=0,col='gray',lty=2)
-s.class(plt_data[c('MDS1', 'MDS2')], fac=factor(plt_data$Cobertura), col = colors, add.plot = T)
-
-plot(plt_data[c('MDS1', 'MDS2')], col='gray', pch=16, bty='n',xlab='NMDS 1', ylab='NMDS 2', cex=0.5, cex.lab=1)
-abline(v=0,col='gray',lty=2);abline(h=0,col='gray',lty=2)
-text(x=plt_data$MDS1, y=plt_data$MDS2, labels = plt_data$sensor_name)
+s.class(plt_data[c('MDS1', 'MDS2')], fac=factor(plt_data$site), col = colors, add.plot = T)
+text(x=plt_data$MDS1, y=plt_data$MDS2, labels = plt_data$period, col = 'gray50')
 
 # Save NMDS data
 xdata = data.frame(NMDS1=tf_bins_nmds$points[,1], NMDS2=tf_bins_nmds$points[,2], 
@@ -50,9 +49,10 @@ xdata['sensor_name'] = substr(row.names(xdata), 1, 4)
 write.csv(xdata, './nmds_data/nmds_data.csv', row.names=FALSE)
 
 # Use a non parametric test to evaluate significance of the groups
-#dist = vegdist(tf_bins, 'bray')  # using 3072 dimensions
-dist = vegdist(xdata[c('NMDS1', 'NMDS2')], 'euclidean') # using 2D data
-adonis(dist~xdata$cobertura, permutations = 1000)
+dist = vegdist(tf_bins, 'bray') # using 2D data
+treatment = substr(row.names(tf_bins), 4,5)=='P6'
+permanova = adonis2(dist~treatment, permutations = 1000)
+permanova
 
 ## -- Find Indicator Bins -- ##
 # combine data frames with environmental data

@@ -27,7 +27,7 @@ with open('../config.yaml', 'r') as f:
     config = yaml.safe_load(f)
 
 path_audio = config['input_data']['path_audio']
-path_metadata = config['preprocessing']['path_save_metadata_full']
+path_metadata = config['preprocessing']['path_save_metadata_clean']
 path_save_df = config['acoustic_indices']['path_save_df']
 target_fs = config['acoustic_indices']['target_fs']
 
@@ -45,6 +45,7 @@ for sensor_name in sensor_list:
         # Load and resample to 48 kHz
         s, fs = sound.load(row.path_audio)
         s = sound.resample(s, fs, target_fs, res_type='scipy_poly')
+        s = sound.select_bandwidth(s, fs, fcut=[3000, 22000], forder=6)
     
         # Compute the amplitude spectrogram and acoustic indices
         Sxx, tn, fn, ext = sound.spectrogram(
@@ -52,7 +53,7 @@ for sensor_name in sensor_list:
         df_indices_file = compute_acoustic_indices(s, Sxx, tn, fn)
             
         # add file information to dataframes
-        add_info = row[['fname', 'sensor_name', 'date']]
+        add_info = row[['fname', 'sensor_name', 'date', 'period']]
         df_indices_file = pd.concat([add_info, df_indices_file])
         
         # append to dataframe
@@ -62,5 +63,9 @@ for sensor_name in sensor_list:
     df_indices.to_csv(path_save_df+sensor_name+'_indices.csv', index=False)
 
 #%% Plot indices to check consistency
-df_indices = pd.read_csv('../../output/dataframes_ai/P2-G087_indices.csv')
-plot_acoustic_indices(df_indices, alpha=0.3, size=0.5)
+df_indices = pd.read_csv('../../output/dataframes_ai/P6-G026_indices.csv')
+plot_acoustic_indices(
+    df_indices, 
+    ai_list=['ADI', 'ACI', 'NDSI', 'BI','Hf', 'Ht', 'H', 'SC_MF', 'NP'],
+    alpha=0.3, 
+    size=0.5)

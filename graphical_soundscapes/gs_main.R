@@ -12,14 +12,14 @@ library(yaml)
 config <- yaml.load_file('../config.yaml')
 path_audio_dataset = config$input_data$path_audio  # location of audio dataset
 path_save_gs = config$graph_soundscapes$path_save_gs  # location to save the dataframe
-path_metadata = config$preprocessing$path_save_metadata_clean  # location to metadata information
+path_metadata = config$preprocessing$path_save_metadata_t1  # location to metadata information
 path_save_fig = config$graph_soundscapes$path_save_fig  # location to save the figure
 
 # 1. READ METADATA
 df = read.csv(path_metadata)
 df$path_audio = as.character(df$path_audio)
 df$time = format(strptime(df$date, format = "%Y-%m-%d %H:%M:%S"), format = "%H:%M:%S")
-sites = c('CAT001', 'CAT002', 'CAT009', 'CAT011')
+sites = unique(df$site)
 
 ## 2. REMOVE RAIN DATA
 # This is an advanced feature and first requires the development of a rain detector
@@ -29,7 +29,7 @@ for(site in sites){
     # set dataframe and compute graphical soundscape
     df_site = df[df$site==site,]
     df_site <- df_site[order(df_site$date), ]
-    gs = graphical_soundscape(df_site, spec_wl=256, fpeaks_th=10, fpeaks_f=0, verbose=T)
+    gs = graphical_soundscape(df_site, spec_wl=256, fpeaks_th=30, fpeaks_f=0, verbose=T)
     
     # save graph soundscape
     fname_save_gs = paste(path_save_gs, site, '.csv', sep='')

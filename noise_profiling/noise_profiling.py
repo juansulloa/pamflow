@@ -34,6 +34,37 @@ ax.set_ylabel('Decibelios relativos al valor mínimo')
 ax.set_xlabel('Día')
 sns.despine(trim=True)
 
+
+#%% Select samples for community analysis
+df_full = pd.read_csv('../../output/metadata/metadata_full.csv')
+df_full.loc[:,'date_fmt'] = pd.to_datetime(df_full.date,  format='%Y-%m-%d %H:%M:%S')
+df_full['day'] = df_full.date_fmt.dt.strftime('%m-%d')
+
+t0 = ['04-13', '04-14', '04-15', '04-16', '04-17', '04-18']
+t1 = ['05-02', '05-03', '05-04', '05-05', '05-06', '05-07']
+t2 = ['06-01', '06-02', '06-03', '06-04', '06-05', '06-06']
+t2_Z6 = ['05-26','05-27', '05-28', '05-29', '05-30', '05-31']
+
+df_t0 = df_full.loc[ df_full.day.isin(t0), :].sort_values('fname')
+df_t0['period'] = 't0'
+df_t0.to_csv('../../output/metadata/metadata_t0.csv', index=False)
+
+df_t1 = df_full.loc[ df_full.day.isin(t1), :].sort_values('fname')
+df_t1['period'] = 't1'
+df_t1.to_csv('../../output/metadata/metadata_t1.csv', index=False)
+
+df_t2 = df_full.loc[ df_full.day.isin(t2), :].sort_values('fname')
+df_t2['period'] = 't2'
+df_t2.to_csv('../../output/metadata/metadata_t2.csv', index=False)
+
+df_t2_Z6 = df_full.loc[ (df_full.day.isin(t2_Z6) & 
+                         df_full.site.isin(['Z6-G047'])), :].sort_values('fname')
+df_t2_Z6['period'] = 't2'
+df_t2_Z6.to_csv('../../output/metadata/metadata_t2_Z6.csv', index=False)
+
+df_periods = pd.concat([df_t0, df_t1, df_t2], axis=0)
+df_periods.to_csv('../../output/metadata/metadata_t0-t1-t2.csv', index=False)
+
 #%% Select samples for manual analysis
 df_full = pd.read_csv('../../output/metadata/metadata_full.csv')
 df_full.loc[:,'date_fmt'] = pd.to_datetime(df_full.date,  format='%Y-%m-%d %H:%M:%S')

@@ -38,10 +38,11 @@ def compute_acoustic_indices(s, Sxx, tn, fn):
     Ht = features.temporal_entropy(s)
     Hf, _ = features.frequency_entropy(Sxx_power)
     H = Hf * Ht
-    BI = features.bioacoustics_index(Sxx, fn, flim=(2000, 11000))
+    BI = features.bioacoustics_index(Sxx, fn, flim=(3000, 11000))
     NP = features.number_of_peaks(Sxx_power, fn, mode='linear', min_peak_val=0, 
                                   min_freq_dist=100, slopes=None, prominence=1e-6)
-    SC, _, _ = features.spectral_cover(Sxx_dB, fn, dB_threshold=-50, flim_LF=(1000,20000))
+    _, SC_MF, SC_HF = features.spectral_cover(Sxx_dB, fn, dB_threshold=-80, 
+                                              flim_MF=(3000,10000), flim_HF=(10000,20000))
     
     # Structure data into a pandas series
     df_indices = pd.Series({
@@ -52,7 +53,8 @@ def compute_acoustic_indices(s, Sxx, tn, fn):
         'Hf': Hf,
         'Ht': Ht,
         'H': H,
-        'SC': SC,
+        'SC_MF': SC_MF,
+        'SC_HF': SC_HF,
         'NP': int(NP)})
 
     return df_indices
@@ -68,19 +70,22 @@ def compute_acoustic_indices_single_file(path_audio):
     df_indices_file['fname'] = os.path.basename(path_audio)
     return df_indices_file
 
-def plot_acoustic_indices(df, alpha=0.5, size=3):
+def plot_acoustic_indices(
+        df, 
+        ai_list=['ADI', 'ACI', 'NDSI', 'BI','Hf', 'Ht', 'H', 'SC', 'NP'], 
+        alpha=0.5, 
+        size=3):
+    
     # format data
     df.loc[:,'date_fmt'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
     df['time'] = df.date.str[11:13].astype(int)
     # plot
     fig, ax = plt.subplots(nrows=3, ncols=3, figsize=(10, 10))
-    sns.scatterplot(df, x='time', y='ACI', alpha=alpha, size=size, ax=ax[0,0])
-    sns.scatterplot(df, x='time', y='ADI', alpha=alpha, size=size, ax=ax[0,1])
-    sns.scatterplot(df, x='time', y='BI', alpha=alpha, size=size, ax=ax[0,2])
-    sns.scatterplot(df, x='time', y='H', alpha=alpha, size=size, ax=ax[1,0])
-    sns.scatterplot(df, x='time', y='Ht', alpha=alpha, size=size, ax=ax[1,1])
-    sns.scatterplot(df, x='time', y='Hf', alpha=alpha, size=size, ax=ax[1,2])
-    sns.scatterplot(df, x='time', y='NDSI', alpha=alpha, size=size, ax=ax[2,0])
-    sns.scatterplot(df, x='time', y='NP', alpha=alpha, size=size, ax=ax[2,1])
-    sns.scatterplot(df, x='time', y='SC', alpha=alpha, size=size, ax=ax[2,2])
+    ax = ax.ravel()
+    for (i, idx_ax) in enumerate(ax):
+        sns.scatterplot(
+            df, x='time', y=ai_list[i], alpha=alpha, size=size, ax=idx_ax, legend=False)
+        sns.regplot(df, x='time', y=ai_list[i], order=6, scatter=False, ax=idx_ax)
+
     fig.set_tight_layout('tight')
+    
