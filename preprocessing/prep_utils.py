@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Utilitary files to preprocess large sampling data assiciated with passive acoustic 
-monitoring
-
+Utilitary functions to manage, check and preprocess large sampling data assiciated with passive acoustic monitoring
 
 """
 import os
+import argparse
 import shutil
 import pandas as pd
 import numpy as np
@@ -17,101 +16,29 @@ from maad import sound, util
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def search_files(directory=".", extension=""):
-    extension = extension.lower()
-    for dirpath, dirnames, files in os.walk(directory):
-        for name in files:
-            if extension and name.lower().endswith(extension):
-                return os.path.join(dirpath, name)
-            elif not extension:
-                return os.path.join(dirpath, name)
+# ----------------------------------
+# Main Utilities For Other Functions
+# ----------------------------------
 
-
-def listdir_pattern(path_dir, ends_with=None):
-    """
-    Wraper function from os.listdir to include a filter to search for patterns
-    
-    Parameters
-    ----------
-        path_dir: str
-            path to directory
-        ends_with: str
-            pattern to search for at the end of the filename
-    Returns
-    -------
-    """
-    flist = listdir(path_dir)
-
-    new_list = []
-    for names in flist:
-        if names.endswith(ends_with):
-            new_list.append(names)
-    return new_list
-
-def add_file_prefix(folder_name: str, recursive:bool=False) -> None:
-    """
-    Adds a prefix to the file names in the given directory.
-    The prefix is the name of the immediate parent folder of the files.
-
-    Parameters:
-    folder_name(str): Name of directory which contains files.
-    recursive(bool): If True, searches for files in sub-directories recursively.
-                     Defaults to False if not provided.
-
-    Returns: None
-    """
-    folder_path = Path(folder_name)
-
-    # Get list of files to process
-    if recursive:
-        flist = list(folder_path.glob('**/*.WAV')) + list(folder_path.glob('**/*.wav'))
-    else:
-        flist = list(folder_path.glob('*.WAV')) + list(folder_path.glob('*.wav'))
-
-    # remove files that already have the parent directory name and hidden files
-    flist = [f for f in flist if (not f.name.startswith(f.parent.name+'_'))]
-    flist = [f for f in flist if not f.name.startswith('.')]
-
-    print(f'Number of WAVE files detected with no prefix: {len(flist)}')
-
-    # Loop and change names
-    for fname in flist:
-        prefix = fname.parent.name
-        new_fname = fname.with_name(f'{prefix}_{fname.name}')
+# Function argument validation
+def input_validation_df(df):
+    """ Validate dataframe or path input argument """
+    if isinstance(df, pd.DataFrame):
+        pass
+    elif isinstance(df, str):
         try:
-            fname.rename(new_fname)
-        except Exception as e:
-            print(f"Error occurred while renaming {fname}: {e}")
+            # Attempt to load a DataFrame from the provided file path.
+            df = pd.read_csv(df) 
+        except FileNotFoundError:
+            raise FileNotFoundError(f"File not found: {df}")
+    else:
+        raise ValueError("Input 'data' must be either a Pandas DataFrame, a file path string, or None.")
+    return df
 
-def metadata_summary(df):
-    """ Get a summary of a metadata dataframe of the acoustic sampling
-
-    Parameters
-    ----------
-    df : pandas DataFrame
-        The dataframe must have the columns site, date, sample_length.
-        Use maad.util.get_audio_metadata to compile the dataframe.
-
-    Returns
-    -------
-    pandas DataFrame
-        A summary of each site
-    """
-    df.loc[:,'date_fmt'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
-    df_summary = {}
-    for site, df_site in df.groupby('site'):
-        site_summary = {
-            'date_ini': str(df_site.date_fmt.min()),
-            'date_end': str(df_site.date_fmt.max()),
-            'n_recordings': len(df_site),
-            'duration': str(df_site.date_fmt.max() - df_site.date_fmt.min()),
-            'sample_length': df_site.length.mean().round(),
-            'time_diff': df_site['date_fmt'].sort_values().diff().median(),
-        }
-        df_summary[site] = site_summary
-    df_summary = pd.DataFrame(df_summary).T
-    return df_summary.reset_index().rename(columns={'index': 'site'})
-
+#%%
+# ------------------------
+# Visualization Functions
+# ------------------------
 def plot_sensor_deployment(df, ax=None):
     """ Plot sensor deployment to have an overview of the sampling
 
@@ -128,7 +55,10 @@ def plot_sensor_deployment(df, ax=None):
     matplotlib.figure
         If axes are not provided, a figure is created and figure handles are returned.
     """
-    df.loc[:,'date_fmt'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
+    # Function argument validation
+    df = input_validation_df(df)
+
+    df['date_fmt'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
     df_out = pd.DataFrame()
     for sensor_name, df_sensor in df.groupby('sensor_name'):
         aux = pd.DataFrame(df_sensor.date_fmt.dt.date.value_counts())
@@ -156,11 +86,169 @@ def plot_sensor_deployment(df, ax=None):
                         size='num_rec', size_norm = (10, 100), 
                         hue='num_rec', hue_norm = (10, 100),
                         data=df_out)
+        plt.show()
     else:
         sns.scatterplot(y='date', x='sensor_name', 
                         size='num_rec', size_norm = (10, 100), 
                         hue='num_rec', hue_norm = (10, 100),
                         data=df_out, ax=ax)
+
+#%%
+# ------------------------
+# File Managment Functions
+# ------------------------
+def search_files(directory=".", extension=""):
+    """
+    Search for files within a specified directory and its subdirectories.
+
+    Args:
+        directory (str, optional): The directory to start the search in (default: current directory).
+        extension (str, optional): The file extension to filter by (e.g., ".txt"). If provided, only files with
+            this extension will be considered. If not provided or an empty string, all files will be considered.
+
+    Returns:
+        str or None: The path to the first matching file found, or None if no matching file is found.
+
+    Note:
+        This function uses a recursive approach to search for files in the specified directory and its subdirectories.
+        It returns the path to the first matching file it encounters during the search.
+    """
+    extension = extension.lower()
+    for dirpath, dirnames, files in os.walk(directory):
+        for name in files:
+            if extension and name.lower().endswith(extension):
+                return os.path.join(dirpath, name)
+            elif not extension:
+                return os.path.join(dirpath, name)
+
+def listdir_pattern(path_dir, ends_with=None):
+    """
+    Wraper function from os.listdir to include a filter to search for patterns
+    
+    Parameters
+    ----------
+        path_dir: str
+            path to directory
+        ends_with: str
+            pattern to search for at the end of the filename
+    Returns
+    -------
+    """
+    flist = listdir(path_dir)
+
+    new_list = []
+    for names in flist:
+        if names.endswith(ends_with):
+            new_list.append(names)
+    return new_list
+
+def add_file_prefix(folder_name: str, recursive:bool=False, verbose:bool=False) -> None:
+    """
+    Adds a prefix to the file names in the given directory.
+    The prefix is the name of the immediate parent folder of the files.
+
+    Parameters:
+    folder_name(str): Name of directory which contains files.
+    recursive(bool): If True, searches for files in sub-directories recursively.
+                     Defaults to False if not provided.
+
+    Returns: None
+    """
+    folder_path = Path(folder_name)
+
+    # Get list of files to process
+    if recursive:
+        flist = list(folder_path.glob('**/*.WAV')) + list(folder_path.glob('**/*.wav'))
+    else:
+        flist = list(folder_path.glob('*.WAV')) + list(folder_path.glob('*.wav'))
+
+    if verbose:
+        print(f'Number of WAVE files detected: {len(flist)}')
+
+    # remove files that already have the parent directory name and hidden files
+    flist = [f for f in flist if (not f.name.startswith(f.parent.name+'_'))]
+    flist = [f for f in flist if not f.name.startswith('.')]
+
+    # Loop and change names
+    flist_changed = list()
+    for fname in flist:
+        prefix = fname.parent.name
+        new_fname = fname.with_name(f'{prefix}_{fname.name}')
+        try:
+            fname.rename(new_fname)
+            flist_changed.append(str(new_fname))
+        except Exception as e:
+            print(f"Error occurred while renaming {fname}: {e}")
+    
+    if verbose:
+        print(f'Number of WAVE files detected with no prefix: {len(flist)}')
+        print(f'Number of WAVE files renamed: {len(flist_changed)}')
+        print(flist_changed)
+
+def copy_file_list(flist, path_save):
+    """ Copy selected files to a new folder """
+    for _, row in flist.iterrows():
+        src_file = row.path_audio
+        dst_file = path_save + row.fname
+        shutil.copyfile(src_file, dst_file)
+
+def rename_files_time_delay(path_dir, delay_hours=-5, verbose=False):
+    """ Rename files to fix time delay issues
+    When using audio recorders, time can be badly configured. This simple function allows to fix time dalys that occurr because of changes in time zones. The files must have a standard format.
+
+    """
+    if type(path_dir) == str:
+        flist = glob.glob(os.path.join(path_dir, '*.WAV'))
+        flist.sort()
+
+    for fname in flist:
+        fname_orig = util.filename_info(fname)
+        date_orig = pd.to_datetime(fname_orig['date'])
+        fname_ext = '.' + fname_orig['fname'].split('.')[1]
+        date_fixed = date_orig + pd.Timedelta(hours=delay_hours)
+        fname_fixed = fname_orig['sensor_name']+'_'+date_fixed.strftime('%Y%m%d_%H%M%S')+fname_ext
+        if verbose:
+            print(f'Renaming file: {os.path.basename(fname)} > {fname_fixed}')
+        
+        # rename file
+        os.rename(src=fname, dst=os.path.join(os.path.dirname(fname), fname_fixed))
+
+#%%
+# ------------------------
+# Audio Metadata Functions
+# ------------------------
+
+def print_damaged_files(df):
+    for _, row in df.iterrows():
+        try:
+            util.audio_header(row.path_audio)
+        except:
+            print(row.fname)
+
+def get_audio_metadata(path_dir, path_save, dropna=True, verbose=False) -> None:
+    """
+    Extracts audio metadata from files in a directory and saves it to a CSV file.
+
+    Args:
+        path_dir (str): The directory containing audio files.
+        path_save (str): The path where the metadata CSV file will be saved.
+        dropna (bool, optional): If True, remove rows with missing values (default: True).
+        verbose (bool, optional): If True, display progress and information (default: False).
+
+    Returns:
+        None
+
+    Note:
+        This function extracts metadata from audio files in the specified directory using the 'util.get_metadata_dir' function.
+        It adds a 'site' column based on the file names, drops rows with missing values if 'dropna' is True,
+        and saves the resulting DataFrame to a CSV file at 'path_save'.
+    """
+    df = util.get_metadata_dir(path_dir, verbose=verbose)
+    df['site'] = df.fname.str.split('_').str[0]  # include site column
+    if dropna:
+        df.dropna(inplace=True)  # remove problematic files
+    # save dataframes to csv
+    df.to_csv(path_save, index=False)
 
 def random_sample_metadata(df, n_samples_per_site=10, hour_sel=None, random_state=None):
     """ Get a random sample form metadata DataFrame """
@@ -180,20 +268,44 @@ def random_sample_metadata(df, n_samples_per_site=10, hour_sel=None, random_stat
 
     df_out.reset_index(drop=True, inplace=True)
 
-    # Check that all sites have 6 samples
-    # df_out.sensor_name.value_counts()
-    # Check that times are distributed in a uniform way
-    # df_out.hour.value_counts() / len(df_out)
-
     return df_out
 
-def copy_file_list(flist, path_save):
-    #%% Copy selected files to a new folder
-    for _, row in flist.iterrows():
-        src_file = row.path_audio
-        dst_file = path_save + row.fname
-        shutil.copyfile(src_file, dst_file)
+def metadata_summary(df):
+    """ Get a summary of a metadata dataframe of the acoustic sampling
 
+    Parameters
+    ----------
+    df : pandas DataFrame or string with path to a csv file
+        The dataframe must have the columns site, date, sample_length.
+        Use maad.util.get_audio_metadata to compile the dataframe.
+
+    Returns
+    -------
+    pandas DataFrame
+        A summary of each site
+    """
+    # Function argument validation
+    df = input_validation_df(df)
+        
+    df['date_fmt'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
+    df_summary = {}
+    for site, df_site in df.groupby('site'):
+        site_summary = {
+            'date_ini': str(df_site.date_fmt.min()),
+            'date_end': str(df_site.date_fmt.max()),
+            'n_recordings': len(df_site),
+            'duration': str(df_site.date_fmt.max() - df_site.date_fmt.min()),
+            'sample_length': df_site.length.mean().round(),
+            'time_diff': df_site['date_fmt'].sort_values().diff().median(),
+        }
+        df_summary[site] = site_summary
+    df_summary = pd.DataFrame(df_summary).T
+    return df_summary.reset_index().rename(columns={'index': 'site'})
+
+#%%
+# --------------------
+# Time Lapse Functions
+# --------------------
 def concat_audio(flist, sample_len=1, verbose=False, display=False):
     """ Concatenates samples using a list of audio files
 
@@ -233,24 +345,60 @@ def concat_audio(flist, sample_len=1, verbose=False, display=False):
 
     return long_wav, fs
 
+def audio_timelapse(df, sample_len=1, path_save='.') -> None:
+    # Function argument validation
+    df = input_validation_df(df)
+    
+    ngroups = df.groupby(['site', 'day']).ngroups
+    print(f'Processing {ngroups} groups:')
+    print(pd.DataFrame(df.groupby(['site', 'day']).groups.keys(), columns=['site', 'day']))
 
-def rename_files_time_delay(path_dir, delay_hours=-5, verbose=False):
-    """ Rename files to fix time delay issues
-    When using audio recorders, time can be badly configured. This simple function allows to fix time dalys that occurr because of changes in time zones. The files must have a standard format.
+    # Loop through site-day category
+    for (site, day), df_gp in df.groupby(['site', 'day']):
+        print(site,day)
+        long_wav, fs = concat_audio(df_gp['path_audio'],
+                                    sample_len=sample_len, 
+                                    verbose=True,
+                                    display=False)
+        path_save_full = os.path.join(path_save,f'{site}_{day}_tlapse.wav')
+        sound.write(path_save_full, fs, long_wav, bit_depth=16)
 
-    """
-    if type(path_dir) == str:
-        flist = glob.glob(os.path.join(path_dir, '*.WAV'))
-        flist.sort()
+#%%
+# ----------------
+# Main Entry Point
+# ----------------
+def main():
+    parser = argparse.ArgumentParser(
+        description="Perform preprocessing operations on audio data.")
+    parser.add_argument(
+        "operation", 
+        choices=["get_audio_metadata", 
+                 "metadata_summary",
+                 "plot_sensor_deployment",
+                 "audio_timelapse",
+                 "add_file_prefix"], 
+        help="Preprocessing operation")
+    
+    parser.add_argument("--path", type=str, help="Path to directory to search")
+    parser.add_argument("--path_save", type=str, help="Path and filename to save results")
+    parser.add_argument("--dropna", action="store_true", help="Drop NAN values from metadata")
+    parser.add_argument("--length", type=float, help="Sample length for audio timelapse")
+    parser.add_argument("--recursive", "-r", action="store_true", help="Enable recursive mode")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose mode")
+    args = parser.parse_args()
 
-    for fname in flist:
-        fname_orig = util.filename_info(fname)
-        date_orig = pd.to_datetime(fname_orig['date'])
-        fname_ext = '.' + fname_orig['fname'].split('.')[1]
-        date_fixed = date_orig + pd.Timedelta(hours=delay_hours)
-        fname_fixed = fname_orig['sensor_name']+'_'+date_fixed.strftime('%Y%m%d_%H%M%S')+fname_ext
-        if verbose:
-            print(f'Renaming file: {os.path.basename(fname)} > {fname_fixed}')
-        
-        # rename file
-        os.rename(src=fname, dst=os.path.join(os.path.dirname(fname), fname_fixed))
+    if args.operation == "get_audio_metadata":
+        result = get_audio_metadata(args.path, args.path_save, args.dropna, args.verbose)
+    elif args.operation == "add_file_prefix":
+        result = add_file_prefix(args.path, args.recursive, args.verbose)
+    elif args.operation == "plot_sensor_deployment":
+        result = plot_sensor_deployment(args.path)
+    elif args.operation == "audio_timelapse":
+        result = audio_timelapse(args.path, args.length, args.path_save)
+    elif args.operation == "metadata_summary":
+        result = metadata_summary(args.path)
+
+    print("Result:", result)
+
+if __name__ == "__main__":
+    main()
