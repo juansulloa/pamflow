@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from maad import sound, util
 from skimage.feature import peak_local_max
 
-
+#%%
 def spectrogram_local_max(
     s,
     fs,
@@ -49,8 +49,10 @@ def spectrogram_local_max(
 
     Returns
     -------
-    peak_density: pandas Series
-        Normalized count of peaks per frequency bin.
+    peak_time: numpy.array
+        The temporal coordinates of local peaks (maxima) in a spectrogram. 
+    peak_frequency: numpy.array
+        The spectral coordinates of local peaks (maxima) in a spectrogram. 
     """
 
     # Compute spectrogram
@@ -109,7 +111,7 @@ def graphical_soundscape(
         print(idx + 1, "/", len(df), ":", os.path.basename(df_aux.fname))
         # Load data
         s, fs = sound.load(df_aux.path_audio)
-        s = sound.resample(s, fs, target_fs, res_type="kaiser_fast")
+        s = sound.resample(s, fs, target_fs, res_type="scipy_poly")
         peak_time, peak_freq = spectrogram_local_max(
             s,
             target_fs,
@@ -121,7 +123,7 @@ def graphical_soundscape(
         )
         
         # Count number of peaks at each frequency bin
-        _, tn, fn, _ = sound.spectrogram(s, fs, nperseg=nperseg, noverlap=noverlap)
+        _, tn, fn, _ = sound.spectrogram(s, target_fs, nperseg=nperseg, noverlap=noverlap)
         freq_idx, count_freq = np.unique(peak_freq, return_counts=True)
         count_peak = np.zeros(fn.shape)
         bool_index = np.isin(fn, freq_idx)
@@ -130,7 +132,7 @@ def graphical_soundscape(
         peak_density = pd.Series(index=fn, data=count_peak)
 
         # Normalize per time
-        peak_density = (peak_density > 0).astype(int)
+        #peak_density = (peak_density > 0).astype(int)
         peak_density.name = os.path.basename(df_aux.path_audio)
         res = pd.concat([res, peak_density.to_frame().T])
 
@@ -138,7 +140,7 @@ def graphical_soundscape(
 
     return res.groupby("time").mean()
 
-def plot_graph(graph, ax=None):
+def plot_graph(graph, ax=None, savefig=False, fname=None):
     """ Plots a graphical soundscape
 
     Parameters
@@ -163,4 +165,7 @@ def plot_graph(graph, ax=None):
     ax.set_yticks(ytick_idx)
     ax.set_yticklabels(graph.columns[ytick_idx].astype(int).values)
 
+    if savefig:
+        plt.savefig(fname, bbox_inches='tight')
+    
     return ax
