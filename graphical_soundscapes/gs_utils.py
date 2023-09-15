@@ -37,8 +37,8 @@ def input_validation(data_input):
 #%%
 def spectrogram_local_max(
     Sxx, tn, fn, ext,
-    min_peak_distance,
-    min_peak_amplitude,
+    min_distance,
+    threshold_abs,
     display=False,
     **kwargs
 ):
@@ -55,9 +55,9 @@ def spectrogram_local_max(
         Frecuency vector of target audio, which results from the maad.sound.spectrogram function.
     ext : list of scalars [left, right, bottom, top]
         Extent keyword arguments controls the bounding box in data coordinates for the spectrogram of the target audio, which results from the maad.sound.spectrogram function.
-    min_peak_distance : int
+    min_distance : int
         Minimum number of pixels separating peaks. This parameter controls how close peaks can be to each other. Peaks that are closer than min_distance will be merged into a single peak.
-    min_peak_amplitude : float
+    threshold_abs : float
         Minimum amplitude threshold for peak detection. Must be above Sxx.min().
     display : bool, optional
         Option to display the resulting figure.
@@ -71,12 +71,13 @@ def spectrogram_local_max(
     """
 
     # Validate input
-    if min_peak_amplitude < Sxx.min():
-        raise ValueError(f'Value for minimum peak amplitude is below minimum value on spectrogram')
+    if threshold_abs is not None:
+        if threshold_abs < Sxx.min():
+            raise ValueError(f'Value for minimum peak amplitude is below minimum value on spectrogram')
 
     # Find peaks in spectrogram
     peaks = peak_local_max(
-        Sxx, min_distance=min_peak_distance, threshold_abs=min_peak_amplitude, **kwargs
+        Sxx, min_distance=min_distance, threshold_abs=threshold_abs, **kwargs
     )
 
     if display == True:
@@ -94,7 +95,7 @@ def spectrogram_local_max(
 
 #%%
 def graphical_soundscape(
-    data_input, target_fs, nperseg, noverlap, db_range, min_peak_distance, min_peak_amplitude
+    data_input, target_fs, nperseg, noverlap, db_range, min_distance, threshold_abs
 ):
     """
     Computes a graphical soundscape from a given dataframe of audio files.
@@ -111,9 +112,9 @@ def graphical_soundscape(
         Number of samples to overlap between segments to compute the spectrogram.
     db_range : float
         Dynamic range of the computed spectrogram.
-    min_peak_distance : int
+    min_distance : int
         Minimum number of indices separating peaks.
-    min_peak_amplitude : float
+    threshold_abs : float
         Minimum amplitude threshold for peak detection in decibels.
 
     Returns
@@ -135,8 +136,8 @@ def graphical_soundscape(
         # Compute local max
         peak_time, peak_freq = spectrogram_local_max(
             Sxx_db, tn, fn, ext,
-            min_peak_distance, 
-            min_peak_amplitude)
+            min_distance, 
+            threshold_abs)
         
         # Count number of peaks at each frequency bin
         freq_idx, count_freq = np.unique(peak_freq, return_counts=True)

@@ -5,7 +5,7 @@ WARNING: THIS SCRIPT IS UNDER CONSTRUCTION
 """
 import pandas as pd
 import yaml
-from maad import sound
+from maad import sound, util
 from gs_utils import spectrogram_local_max, graphical_soundscape, plot_graph
 import matplotlib.pyplot as plt
 
@@ -20,8 +20,8 @@ target_fs = 48000
 nperseg = 256
 noverlap = 128
 db_range = 80
-min_peak_distance = 1
-min_peak_amplitude = 30
+min_distance = 1
+threshold_abs = -50
 
 #%%
 df = pd.read_csv(path_metadata)
@@ -33,22 +33,29 @@ for site, df_site in df.groupby('site'):
         nperseg,
         noverlap,
         db_range,
-        min_peak_distance,
-        min_peak_amplitude
+        min_distance,
+        threshold_abs
     )
     plot_graph(graph)
 
 #%%
-s, fs = sound.load(
-    "/Volumes/lacie_exfat/Cataruben/audio/CAT002/CAT002_20221231_070000.WAV"
+fname = "/Users/jsulloa/Dropbox/PostDoc/iavh/2020_Putumayo/putumayo_soundmarks/audio_examples/RUG03_20190805_183000.wav"
+s, fs = sound.load(fname)
+Sxx, tn, fn, ext = sound.spectrogram(s, fs, nperseg=nperseg, noverlap=noverlap)
+Sxx_db = util.power2dB(Sxx, db_range=db_range)
+
+peaks = spectrogram_local_max(
+    Sxx_db, tn, fn, ext,
+    min_distance,
+    threshold_abs,
+    display=True,
 )
-fpeaks = spectrogram_local_max(
-    s,
-    fs,
-    nperseg,
-    noverlap,
-    db_range,
-    min_peak_distance,
-    min_peak_amplitude,
+
+
+peaks = spectrogram_local_max(
+    Sxx_db, tn, fn, ext,
+    min_distance=1,
+    threshold_abs=None,
+    #footprint=np.ones([50,50]),
     display=True,
 )
