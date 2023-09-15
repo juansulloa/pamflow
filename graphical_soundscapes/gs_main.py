@@ -20,8 +20,8 @@ target_fs = 48000
 nperseg = 256
 noverlap = 128
 db_range = 80
-min_peak_distance = 5
-min_peak_amplitude = 30  # CAT001=40
+min_peak_distance = 1
+min_peak_amplitude = 30
 
 #%%
 df = pd.read_csv(path_metadata)

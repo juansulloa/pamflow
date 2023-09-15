@@ -14,36 +14,51 @@ import matplotlib.pyplot as plt
 from maad import sound, util
 from skimage.feature import peak_local_max
 
+#%% Function argument validation
+def input_validation(data_input):
+    """ Validate dataframe or path input argument """
+    if isinstance(data_input, pd.DataFrame):
+        pass
+    elif isinstance(data_input, str):
+        if os.path.isdir(data_input):
+            print('Collecting metadata from directory path')
+            df = util.get_metadata_dir(data_input)
+        elif os.path.isfile(data_input) and data_input.lower().endswith(".csv"):
+            print('Loading metadata from csv file')
+            try:
+                # Attempt to read all wav data from the provided file path.
+                df = pd.read_csv(data_input) 
+            except FileNotFoundError:
+                raise FileNotFoundError(f"File not found: {data_input}")
+    else:
+        raise ValueError("Input 'data' must be either a Pandas DataFrame, a file path string, or None.")
+    return df
+
 #%%
 def spectrogram_local_max(
-    s,
-    fs,
-    nperseg,
-    noverlap,
-    db_range,
+    Sxx, tn, fn, ext,
     min_peak_distance,
     min_peak_amplitude,
     display=False,
+    **kwargs
 ):
     """
     Find peaks on spectrogram as coordinate list in time and frequency
 
     Parameters
     ----------
-    s : ndarray
-        Audio signal.
-    fs : int
-        Sample rate of the audio signal.
-    nperseg : int
-        Window length of each segment to compute the spectrogram.
-    noverlap : int
-        Number of samples to overlap between segments to compute the spectrogram.
-    db_range : float
-        Dynamic range of the computed spectrogram.
+    Sxx : ndarray
+        Spectrogram of audio signal.
+    tn : 1d array
+        Time vector of target audio, which results from the maad.sound.spectrogram function.
+    fn : 1d array
+        Frecuency vector of target audio, which results from the maad.sound.spectrogram function.
+    ext : list of scalars [left, right, bottom, top]
+        Extent keyword arguments controls the bounding box in data coordinates for the spectrogram of the target audio, which results from the maad.sound.spectrogram function.
     min_peak_distance : int
-        Minimum number of indices separating peaks.
+        Minimum number of pixels separating peaks. This parameter controls how close peaks can be to each other. Peaks that are closer than min_distance will be merged into a single peak.
     min_peak_amplitude : float
-        Minimum amplitude threshold for peak detection in decibels.
+        Minimum amplitude threshold for peak detection. Must be above Sxx.min().
     display : bool, optional
         Option to display the resulting figure.
 
@@ -55,18 +70,18 @@ def spectrogram_local_max(
         The spectral coordinates of local peaks (maxima) in a spectrogram. 
     """
 
-    # Compute spectrogram
-    Sxx, tn, fn, ext = sound.spectrogram(s, fs, nperseg=nperseg, noverlap=noverlap)
-    Sxx_db = util.power2dB(Sxx, db_range=db_range) + db_range
+    # Validate input
+    if min_peak_amplitude < Sxx.min():
+        raise ValueError(f'Value for minimum peak amplitude is below minimum value on spectrogram')
 
     # Find peaks in spectrogram
     peaks = peak_local_max(
-        Sxx_db, min_distance=min_peak_distance, threshold_abs=min_peak_amplitude
+        Sxx, min_distance=min_peak_distance, threshold_abs=min_peak_amplitude, **kwargs
     )
 
     if display == True:
         fig, ax = plt.subplots(nrows=1, figsize=(10, 5))
-        ax.imshow(Sxx_db, cmap="gray", aspect="auto", origin="lower", extent=ext)
+        util.plot_spectrogram(Sxx, ext, log_scale=False, db_range=80, ax=ax)
         ax.scatter(
             tn[peaks[:, 1]],
             fn[peaks[:, 0]],
@@ -77,9 +92,9 @@ def spectrogram_local_max(
 
     return tn[peaks[:, 1]], fn[peaks[:, 0]] 
 
-
+#%%
 def graphical_soundscape(
-    df, target_fs, nperseg, noverlap, db_range, min_peak_distance, min_peak_amplitude
+    data_input, target_fs, nperseg, noverlap, db_range, min_peak_distance, min_peak_amplitude
 ):
     """
     Computes a graphical soundscape from a given dataframe of audio files.
@@ -106,24 +121,24 @@ def graphical_soundscape(
     res : pandas DataFrame
         A Pandas DataFrame containing the graphical representation of the soundscape.
     """
+    df = input_validation(data_input)
     res = pd.DataFrame()
     for idx, df_aux in df.iterrows():
         print(idx + 1, "/", len(df), ":", os.path.basename(df_aux.fname))
+        
         # Load data
         s, fs = sound.load(df_aux.path_audio)
         s = sound.resample(s, fs, target_fs, res_type="scipy_poly")
+        Sxx, tn, fn, ext = sound.spectrogram(s, fs, nperseg=nperseg, noverlap=noverlap)
+        Sxx_db = util.power2dB(Sxx, db_range=db_range)
+
+        # Compute local max
         peak_time, peak_freq = spectrogram_local_max(
-            s,
-            target_fs,
-            nperseg,
-            noverlap,
-            db_range,
-            min_peak_distance,
-            min_peak_amplitude,
-        )
+            Sxx_db, tn, fn, ext,
+            min_peak_distance, 
+            min_peak_amplitude)
         
         # Count number of peaks at each frequency bin
-        _, tn, fn, _ = sound.spectrogram(s, target_fs, nperseg=nperseg, noverlap=noverlap)
         freq_idx, count_freq = np.unique(peak_freq, return_counts=True)
         count_peak = np.zeros(fn.shape)
         bool_index = np.isin(fn, freq_idx)
@@ -136,10 +151,11 @@ def graphical_soundscape(
         peak_density.name = os.path.basename(df_aux.path_audio)
         res = pd.concat([res, peak_density.to_frame().T])
 
-    res["time"] = (df.time / 10000).astype(int).to_numpy()
+    res["time"] = df.time.str[0:2].astype(int).to_numpy()
 
     return res.groupby("time").mean()
 
+#%%
 def plot_graph(graph, ax=None, savefig=False, fname=None):
     """ Plots a graphical soundscape
 
