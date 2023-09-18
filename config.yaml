@@ -22,5 +22,5 @@ graph_soundscapes:
   nperseg: 256  # window size to compute the spectrogram
   noverlap: 128  # overlap between windows to compute the spectrogram
   db_range: 80  # dB range for the spectrogram
-  min_peak_distance: 1  
-  min_peak_amplitude: -50
+  min_distance: 1  
+  threshold_abs: -50

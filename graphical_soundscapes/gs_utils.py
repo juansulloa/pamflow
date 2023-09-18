@@ -8,11 +8,19 @@ References:
   - Campos-Cerqueira, M., Aide, T.M., 2017. Changes in the acoustic structure and composition along a tropical elevational gradient. JEA 1, 1–1. https://doi.org/10.22261/JEA.PNCO7I
 """
 import os
+import yaml
+import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from maad import sound, util
 from skimage.feature import peak_local_max
+
+#%% Load configuration file
+def load_config(config_file):
+    with open(config_file, "r") as f:
+        config = yaml.safe_load(f)
+    return config
 
 #%% Function argument validation
 def input_validation(data_input):
@@ -186,3 +194,51 @@ def plot_graph(graph, ax=None, savefig=False, fname=None):
         plt.savefig(fname, bbox_inches='tight')
     
     return ax
+
+#%%
+# ----------------
+# Main Entry Point
+# ----------------
+def main():
+    parser = argparse.ArgumentParser(
+        description="Compute graphical soundscape on audio data.")
+    parser.add_argument(
+        "operation", 
+        choices=[
+            "spectrogram_local_max",
+            "graphical_soundscape",
+            "plot_graph",
+        ],
+        help="Graphical soundscape operation")
+    
+    parser.add_argument("--input_file", type=str, help="Input file")
+    parser.add_argument("--config", type=str, help="Path to config file")
+    parser.add_argument("--display", "-d", action="store_true", help="Enable to display plot")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose mode")
+    args = parser.parse_args()
+    
+    config_file = args.config
+    config = load_config(config_file)
+    # Load configuration
+    #path_data = args.config["preprocessing"]["path_save_metadata_clean"]
+    target_fs = config["graph_soundscapes"]["target_fs"]
+    nperseg = config["graph_soundscapes"]["nperseg"]
+    noverlap = config["graph_soundscapes"]["noverlap"]
+    db_range = config["graph_soundscapes"]["db_range"]
+    min_distance = config["graph_soundscapes"]["min_distance"]
+    threshold_abs = config["graph_soundscapes"]["threshold_abs"]
+
+    if args.operation == "spectrogram_local_max":
+        s, fs = sound.load(args.input_file)
+        s = sound.resample(s, fs, target_fs, res_type="scipy_poly")
+        Sxx, tn, fn, ext = sound.spectrogram(s, fs, nperseg=nperseg, noverlap=noverlap)
+        Sxx_db = util.power2dB(Sxx, db_range=db_range)
+        result = spectrogram_local_max(Sxx_db, tn, fn, ext, min_distance, 
+                                       threshold_abs, display=args.display)
+        print(result)
+
+    elif args.operation == "graphical_soundscape":
+        result = graphical_soundscape(args.path, args.recursive, args.verbose)
+
+if __name__ == "__main__":
+    main()
