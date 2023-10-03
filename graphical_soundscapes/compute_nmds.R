@@ -7,14 +7,14 @@ library(yaml)
 ## LOAD CONFIGURATION VARIABLES
 config <- yaml.load_file('../config.yaml')
 path_gs = config$graph_soundscapes$path_save_gs  # location to save the dataframe
-path_gs = "../../output/dataframes_gs/power_spectrum/"
+path_gs = "../../output/dataframes_gs/python_gs/"
 sites = list.files(path_gs, pattern='*.csv')
 
 # load data and organize as a community matrix (sites as rows, soundscape component (species) as columns)
 tf_bins = list()
 for(site in sites){
   gs = read.csv(paste(path_gs,site,sep=''))
-  gs = gs[,19:129] # remove hour column and 18 columns with frequency peaks below 3 kHz.
+  gs = gs[,13:129] # remove hour column and 18 columns with frequency peaks below 2 kHz.
   sensor_name = substr(site, 1, 10)
   tf_bins[[sensor_name]] = as.vector(t(gs[,-1]))
 }
