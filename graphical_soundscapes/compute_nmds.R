@@ -34,6 +34,7 @@ tf_bins_nmds$stress
 # Plot results in 2D space
 colors = RColorBrewer::brewer.pal(11, 'Paired')
 plt_data = as.data.frame(tf_bins_nmds$points)
+#plt_data['MDS2'] = plt_data['MDS2']*-1
 plt_data['period'] = substr(row.names(plt_data), 1, 2)
 plt_data['site'] = substr(row.names(plt_data), 4, 5)
 
@@ -43,10 +44,9 @@ s.class(plt_data[c('MDS1', 'MDS2')], fac=factor(plt_data$site), col = colors, ad
 text(x=plt_data$MDS1, y=plt_data$MDS2, labels = plt_data$period, col = 'gray50')
 
 # Save NMDS data
-xdata = data.frame(NMDS1=tf_bins_nmds$points[,1], NMDS2=tf_bins_nmds$points[,2], 
-                   Cobertura=factor(plt_data$Cobertura))
-xdata['sensor_name'] = substr(row.names(xdata), 1, 4)
-write.csv(xdata, './nmds_data/nmds_data.csv', row.names=FALSE)
+write.csv(plt_data, '../../output/dataframes_gs/nmds_output.csv', row.names=FALSE)
+group_ordered <- with(plt_data,reorder(site,MDS2,median))
+boxplot(plt_data$MDS2~group_ordered, xlab = 'Site', ylab='NMDS2', frame=F)
 
 # Use a non parametric test to evaluate significance of the groups
 dist = vegdist(tf_bins, 'bray') # using 2D data
