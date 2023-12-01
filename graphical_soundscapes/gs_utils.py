@@ -64,7 +64,7 @@ def spectrogram_local_max(
     ext : list of scalars [left, right, bottom, top]
         Extent keyword arguments controls the bounding box in data coordinates for the spectrogram of the target audio, which results from the maad.sound.spectrogram function.
     min_distance : int
-        Minimum number of pixels separating peaks. This parameter controls how close peaks can be to each other. Peaks that are closer than min_distance will be merged into a single peak.
+        Minimum number of time-frequency coefficients (or pixels) separating peaks. This parameter controls how close peaks can be to each other. Peaks that are closer than min_distance will be merged into a single peak.
     threshold_abs : float
         Minimum amplitude threshold for peak detection. Must be above Sxx.min().
     display : bool, optional
@@ -75,7 +75,13 @@ def spectrogram_local_max(
     peak_time: numpy.array
         The temporal coordinates of local peaks (maxima) in a spectrogram. 
     peak_frequency: numpy.array
-        The spectral coordinates of local peaks (maxima) in a spectrogram. 
+        The spectral coordinates of local peaks (maxima) in a spectrogram.
+
+    Examples
+    --------
+    >>> from maad import sound, rois
+    >>> s, fs = sound.load('../data/spinetail.wav')
+    >>> spectrogram_local_max( Sxx, tn, fn, ext, min_distance, threshold_abs, display=True)
     """
 
     # Validate input
