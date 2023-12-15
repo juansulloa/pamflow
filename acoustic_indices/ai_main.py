@@ -20,7 +20,6 @@ import pandas as pd
 from maad import sound
 from ai_utils import compute_acoustic_indices, plot_acoustic_indices
 
-#%% Set variables
 #%% Load configuration files
 # Open the config file and load its contents into a dictionary
 with open('../config.yaml', 'r') as f:
@@ -41,7 +40,7 @@ for sensor_name in sensor_list:
         
     df_indices = pd.DataFrame()
     for idx_row, row in flist_sel.iterrows():
-        print(idx_row+1, '/', flist_sel.index[-1], ':', row.fname)
+        print(f'{idx_row+1} / {flist_sel.index[-1]}: {row.fname}', end='\r')
         # Load and resample to 48 kHz
         s, fs = sound.load(row.path_audio)
         s = sound.resample(s, fs, target_fs, res_type='scipy_poly')

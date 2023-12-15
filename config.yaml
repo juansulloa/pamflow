@@ -5,8 +5,8 @@ input_data:
 # Configuration parameters related to the preprocessing workflow
 preprocessing:
   path_save_metadata_full: '../../output/metadata/metadata_full.csv'
-  path_save_metadata_clean: '../../output/metadata/metadata_clean.csv'
   path_save_metadata_sample: '../../output/metadata/metadata_sample.csv'
+  sample_len: 5  # length of sample to build long soundscapes
 
 # Configuration parameters related to the acoustic indices workflow
 acoustic_indices:

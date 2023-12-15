@@ -142,6 +142,31 @@ def listdir_pattern(path_dir, ends_with=None):
             new_list.append(names)
     return new_list
 
+
+import glob
+import os
+import time
+
+#%%
+def find_wav_files(folder_path, recursive=False):
+    """ Search for files with wav or WAV extension """
+    wav_files = []
+    if recursive:
+        for root, dirs, files in os.walk(folder_path):
+            for file in files:
+                if file.lower().endswith('.wav'):
+                    wav_files.append(os.path.join(root, file))
+    else:
+        for file in os.listdir(folder_path):
+                    if file.lower().endswith('.wav'):
+                        wav_files.append(os.path.join(folder_path, file))
+    
+    # Transform the list of strings to a list of Path objects
+    wav_files = [Path(path) for path in wav_files]
+    
+    return wav_files
+
+#%%
 def add_file_prefix(folder_name: str, recursive:bool=False, verbose:bool=False) -> None:
     """
     Adds a prefix to the file names in the given directory.
@@ -157,17 +182,16 @@ def add_file_prefix(folder_name: str, recursive:bool=False, verbose:bool=False) 
     folder_path = Path(folder_name)
 
     # Get list of files to process
-    if recursive:
-        flist = list(folder_path.glob('**/*.WAV')) + list(folder_path.glob('**/*.wav'))
-    else:
-        flist = list(folder_path.glob('*.WAV')) + list(folder_path.glob('*.wav'))
+    flist = find_wav_files(folder_path, recursive=recursive)
+    
+    # remove hidden files 
+    flist = [f for f in flist if not f.name.startswith('.')]
 
     if verbose:
         print(f'Number of WAVE files detected: {len(flist)}')
 
-    # remove files that already have the parent directory name and hidden files
+    # remove files that already have the parent directory name
     flist = [f for f in flist if (not f.name.startswith(f.parent.name+'_'))]
-    flist = [f for f in flist if not f.name.startswith('.')]
 
     # Loop and change names
     flist_changed = list()
@@ -183,7 +207,8 @@ def add_file_prefix(folder_name: str, recursive:bool=False, verbose:bool=False) 
     if verbose:
         print(f'Number of WAVE files detected with no prefix: {len(flist)}')
         print(f'Number of WAVE files renamed: {len(flist_changed)}')
-        print(flist_changed)
+        
+    return flist_changed
 
 def copy_file_list(flist, path_save):
     """ Copy selected files to a new folder """
@@ -348,14 +373,13 @@ def concat_audio(flist, sample_len=1, verbose=False, display=False):
 def audio_timelapse(df, sample_len=1, path_save='.') -> None:
     # Function argument validation
     df = input_validation_df(df)
-    
     ngroups = df.groupby(['site', 'day']).ngroups
     print(f'Processing {ngroups} groups:')
     print(pd.DataFrame(df.groupby(['site', 'day']).groups.keys(), columns=['site', 'day']))
 
     # Loop through site-day category
     for (site, day), df_gp in df.groupby(['site', 'day']):
-        print(site,day)
+        print(site,day, end='\r')
         long_wav, fs = concat_audio(df_gp['path_audio'],
                                     sample_len=sample_len, 
                                     verbose=True,

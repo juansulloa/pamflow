@@ -7,6 +7,7 @@ The preprocessing step includes:
     - Take a small sample of the data for further manual analisys
 
 """
+#%% Load libraries
 import os
 import yaml
 import numpy as np
@@ -28,7 +29,7 @@ path_save_metadata_full = config['preprocessing']['path_save_metadata_full']
 path_save_metadata_sample = config['preprocessing']['path_save_metadata_sample']
 
 #%% 1. Add file prefix according to file names
-add_file_prefix(path_audio, recursive=True)
+flist_changed = add_file_prefix(path_audio, recursive=True, verbose=True)
 
 #%% 2. Get audio metadata and verify acoustic sampling quality
 df = util.get_metadata_dir(path_audio, verbose=True)
@@ -43,33 +44,32 @@ plot_sensor_deployment(df)
 # save dataframes to csv
 df.to_csv(path_save_metadata_full, index=False)
 
-#%% 3. Sample audio for manual analisys
-peak_hours = ['05', '06', '07', '08', '17', '18', '19', '20']
-df_sample = random_sample_metadata(
-    df, n_samples_per_site=12, hour_sel=peak_hours, random_state=123)
-df_sample.to_csv(path_save_metadata_sample, index=False)
-
-#%% 4. Sample audio for overall examination - timelapse soundscapes
-sample_len = 5
-hours_sel = np.arange(0,24)
+#%% 3. Sample audio for overall examination - timelapse soundscapes
+sample_len =  config['preprocessing']['sample_len']
+idx_date = '2023-05-01'
+sample_period = '30T'
+path_save = '../../output/figures/'
 
 # select files to create timelapse
-pd.crosstab(df.site, df.date_fmt.dt.hour) # check hours that can be selected in all sites
-df_timelapse = pd.DataFrame()
-for site, df_site in df.groupby('site'):
-    aux = df_site.loc[df_site['date_fmt'].dt.hour.isin(hours_sel),:]
-    aux = aux.groupby(df['date_fmt'].dt.hour, group_keys=False).apply(lambda x: x.sample(1))
-    df_timelapse = pd.concat([df_timelapse, aux])
+df_timelapse = df.loc[df.date_fmt.dt.date == pd.to_datetime(idx_date).date()]
+df_timelapse.set_index('date_fmt', inplace=True)
 
 # create time lapse
 for site, df_site in df_timelapse.groupby('site'):
     print(site)
+    df_site.sort_values('date_fmt', inplace=True)
+    df_site = df_site.resample(sample_period).first()
     long_wav, fs = concat_audio(df_site['path_audio'],
                                 sample_len=sample_len, 
-                                verbose=True,
-                                display=True)
-    sound.write('../../output/figures/'+site+'_timelapse.wav', fs, long_wav, bit_depth=16)
+                                verbose=True)
+    sound.write(f'{path_save}{site}_timelapse.wav', fs, long_wav, bit_depth=16)
 
 #%% Check long soundscapes and if necesary make temporal adjustments to audio files
 # from prep_utils import rename_files_time_delay
 # rename_files_time_delay(path_data_site, delay_hours=-5, verbose=True)
+
+#%% 4.(Optional) Sample audio for manual analisys
+peak_hours = ['05', '06', '07', '08', '17', '18', '19', '20']
+df_sample = random_sample_metadata(
+    df, n_samples_per_site=12, hour_sel=peak_hours, random_state=123)
+df_sample.to_csv(path_save_metadata_sample, index=False)
