@@ -10,14 +10,12 @@ The preprocessing step includes:
 #%% Load libraries
 import os
 import yaml
-import numpy as np
-import pandas as pd
-from maad import sound, util
+from maad import util
 from prep_utils import (add_file_prefix, 
                         metadata_summary,
                         plot_sensor_deployment,
                         random_sample_metadata,
-                        concat_audio)
+                        audio_timelapse)
 
 #%% Load configuration files
 # Open the config file and load its contents into a dictionary
@@ -35,7 +33,6 @@ flist_changed = add_file_prefix(path_audio, recursive=True, verbose=True)
 df = util.get_metadata_dir(path_audio, verbose=True)
 df.dropna(inplace=True)  # remove problematic files
 df['site'] = df.fname.str.split('_').str[0]  # include site column
-df.loc[:,'date_fmt'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
 
 # Verify acoustic sampling quality
 metadata_summary(df)
@@ -46,23 +43,14 @@ df.to_csv(path_save_metadata_full, index=False)
 
 #%% 3. Sample audio for overall examination - timelapse soundscapes
 sample_len =  config['preprocessing']['sample_len']
-idx_date = '2023-05-01'
-sample_period = '30T'
+date_range = ['2023-05-01', '2023-05-02']
 path_save = '../../output/figures/'
+save_audio = True
+save_spectrogram = True
+verbose = True
 
-# select files to create timelapse
-df_timelapse = df.loc[df.date_fmt.dt.date == pd.to_datetime(idx_date).date()]
-df_timelapse.set_index('date_fmt', inplace=True)
-
-# create time lapse
-for site, df_site in df_timelapse.groupby('site'):
-    print(site)
-    df_site.sort_values('date_fmt', inplace=True)
-    df_site = df_site.resample(sample_period).first()
-    long_wav, fs = concat_audio(df_site['path_audio'],
-                                sample_len=sample_len, 
-                                verbose=True)
-    sound.write(f'{path_save}{site}_timelapse.wav', fs, long_wav, bit_depth=16)
+audio_timelapse(
+        sample_len, sample_period='30T', date_range=None, path_save=None, save_audio=True, save_spectrogram=True, verbose=True)
 
 #%% Check long soundscapes and if necesary make temporal adjustments to audio files
 # from prep_utils import rename_files_time_delay

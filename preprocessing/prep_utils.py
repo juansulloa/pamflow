@@ -370,22 +370,37 @@ def concat_audio(flist, sample_len=1, verbose=False, display=False):
 
     return long_wav, fs
 
-def audio_timelapse(df, sample_len=1, path_save='.') -> None:
+def audio_timelapse(
+        sample_len, sample_period='30T', date_range=None, path_save=None, save_audio=True, save_spectrogram=True, verbose=True)  -> None:
+    """ Build audio timelapse """
     # Function argument validation
     df = input_validation_df(df)
-    ngroups = df.groupby(['site', 'day']).ngroups
+    # select files to create timelapse
+    df.date = pd.to_datetime(df.date)
+    idx_dates = df.date.between(
+        pd.to_datetime(date_range[0]), 
+        pd.to_datetime(date_range[1]),
+        inclusive='left'
+        )
+    df_timelapse = df.loc[idx_dates,:]
+    df_timelapse.set_index('date', inplace=True)
+    df_timelapse['day'] = df_timelapse.date.dt.date
+    ngroups = df_timelapse.groupby(['site', 'day']).ngroups
     print(f'Processing {ngroups} groups:')
-    print(pd.DataFrame(df.groupby(['site', 'day']).groups.keys(), columns=['site', 'day']))
-
-    # Loop through site-day category
-    for (site, day), df_gp in df.groupby(['site', 'day']):
-        print(site,day, end='\r')
-        long_wav, fs = concat_audio(df_gp['path_audio'],
+    
+    # create time lapse
+    for site, df_site in df_timelapse.groupby('site'):
+        print(site)
+        df_site.sort_values('date_fmt', inplace=True)
+        df_site = df_site.resample(sample_period).first()
+        long_wav, fs = concat_audio(df_site['path_audio'],
                                     sample_len=sample_len, 
-                                    verbose=True,
-                                    display=False)
-        path_save_full = os.path.join(path_save,f'{site}_{day}_tlapse.wav')
-        sound.write(path_save_full, fs, long_wav, bit_depth=16)
+                                    verbose=verbose)
+        if save_audio:
+            sound.write(f'{path_save}{site}_timelapse.wav', fs, long_wav, bit_depth=16)
+        
+        if save_spectrogram:
+            print('under construction')
 
 #%%
 # ----------------
