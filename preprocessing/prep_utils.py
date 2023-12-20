@@ -21,16 +21,22 @@ import seaborn as sns
 # ----------------------------------
 
 # Function argument validation
-def input_validation_df(df):
+def input_validation(data_input):
     """ Validate dataframe or path input argument """
-    if isinstance(df, pd.DataFrame):
-        pass
-    elif isinstance(df, str):
-        try:
-            # Attempt to load a DataFrame from the provided file path.
-            df = pd.read_csv(df) 
-        except FileNotFoundError:
-            raise FileNotFoundError(f"File not found: {df}")
+    if isinstance(data_input, pd.DataFrame):
+        df = data_input
+    elif isinstance(data_input, str):
+        if os.path.isdir(data_input):
+            print('Collecting metadata from directory path')
+            df = util.get_metadata_dir(data_input)
+            print(f'Done! {df.shape[0]} files found')
+        elif os.path.isfile(data_input) and data_input.lower().endswith(".csv"):
+            print('Loading metadata from csv file')
+            try:
+                # Attempt to read all wav data from the provided file path.
+                df = pd.read_csv(data_input) 
+            except FileNotFoundError:
+                raise FileNotFoundError(f"File not found: {data_input}")
     else:
         raise ValueError("Input 'data' must be either a Pandas DataFrame, a file path string, or None.")
     return df
@@ -56,7 +62,7 @@ def plot_sensor_deployment(df, x='sensor_name', y='date', ax=None):
         If axes are not provided, a figure is created and figure handles are returned.
     """
     # Function argument validation
-    df = input_validation_df(df)
+    df = input_validation(df)
 
     df['date'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
     df_out = pd.DataFrame()
@@ -267,11 +273,11 @@ def metadata_summary(df):
         A summary of each site
     """
     # Function argument validation
-    df = input_validation_df(df)
+    df = input_validation(df)
         
     df['date_fmt'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
     df_summary = {}
-    for site, df_site in df.groupby('site'):
+    for site, df_site in df.groupby('sensor_name'):
         site_summary = {
             'date_ini': str(df_site.date_fmt.min()),
             'date_end': str(df_site.date_fmt.max()),
@@ -283,7 +289,7 @@ def metadata_summary(df):
         }
         df_summary[site] = site_summary
     df_summary = pd.DataFrame(df_summary).T
-    return df_summary.reset_index().rename(columns={'index': 'site'})
+    return df_summary.reset_index().rename(columns={'index': 'sensor_name'})
 
 #%%
 # --------------------
@@ -333,22 +339,22 @@ def audio_timelapse(
     """ Build audio timelapse """
     
     # Function argument validation
-    df = input_validation_df(data)
+    df = input_validation(data)
     date_range = pd.to_datetime(date_range)
 
     # select files to create timelapse
     df.date = pd.to_datetime(df.date)
     idx_dates = df.date.between(date_range[0], date_range[1], inclusive='left')
     df_timelapse = df.loc[idx_dates,:]
-    df_timelapse.set_index('date', inplace=True)
     df_timelapse['day'] = df_timelapse.date.dt.date
-    ngroups = df_timelapse.groupby(['site', 'day']).ngroups
+    df_timelapse.set_index('date', inplace=True)
+    ngroups = df_timelapse.groupby(['sensor_name', 'day']).ngroups
 
     # create time lapse
     print(f'Processing {ngroups} groups:')
-    for site, df_site in df_timelapse.groupby('site'):
+    for site, df_site in df_timelapse.groupby('sensor_name'):
         print(site)
-        df_site.sort_values('date_fmt', inplace=True)
+        df_site.sort_values('date', inplace=True)
         df_site = df_site.resample(sample_period).first()
         long_wav, fs = concat_audio(df_site['path_audio'],
                                     sample_len=sample_len, 

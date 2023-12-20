@@ -6,6 +6,28 @@ import os
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+#%% Function argument validation
+def input_validation(data_input):
+    """ Validate dataframe or path input argument """
+    if isinstance(data_input, pd.DataFrame):
+        df = data_input
+    elif isinstance(data_input, str):
+        if os.path.isdir(data_input):
+            print('Collecting metadata from directory path')
+            df = util.get_metadata_dir(data_input)
+            print(f'Done! {df.shape[0]} files found')
+        elif os.path.isfile(data_input) and data_input.lower().endswith(".csv"):
+            print('Loading metadata from csv file')
+            try:
+                # Attempt to read all wav data from the provided file path.
+                df = pd.read_csv(data_input) 
+            except FileNotFoundError:
+                raise FileNotFoundError(f"File not found: {data_input}")
+    else:
+        raise ValueError("Input 'data' must be either a Pandas DataFrame, a file path string, or None.")
+    return df
+
+#%%
 def compute_acoustic_indices(s, Sxx, tn, fn):
     """
     Parameters
@@ -31,7 +53,7 @@ def compute_acoustic_indices(s, Sxx, tn, fn):
 
     # Compute acoustic indices
     ADI = features.acoustic_diversity_index(
-        Sxx, fn, fmin=2000, fmax=24000, bin_step=1000, index='shannon', dB_threshold=-70)
+        Sxx, fn, fmin=0, fmax=24000, bin_step=1000, index='shannon', dB_threshold=-30)
     _, _, ACI = features.acoustic_complexity_index(Sxx)
     NDSI, xBA, xA, xB = features.soundscape_index(
         Sxx_power, fn, flim_bioPh=(2000, 20000), flim_antroPh=(0, 2000))
@@ -41,7 +63,7 @@ def compute_acoustic_indices(s, Sxx, tn, fn):
     BI = features.bioacoustics_index(Sxx, fn, flim=(2000, 11000))
     NP = features.number_of_peaks(Sxx_power, fn, mode='linear', min_peak_val=0, 
                                   min_freq_dist=100, slopes=None, prominence=1e-6)
-    SC, _, _ = features.spectral_cover(Sxx_dB, fn, dB_threshold=-50, flim_LF=(1000,20000))
+    SC, _, _ = features.spectral_cover(Sxx_dB, fn, dB_threshold=-80, flim_LF=(1000,20000))
     
     # Structure data into a pandas series
     df_indices = pd.Series({
@@ -57,17 +79,44 @@ def compute_acoustic_indices(s, Sxx, tn, fn):
 
     return df_indices
 
-def compute_acoustic_indices_single_file(path_audio):
+#%%
+def compute_acoustic_indices_single_file(path_audio, target_fs=48000):
     s, fs = sound.load(path_audio)    
-    s = sound.resample(s, fs, target_fs, res_type='kaiser_fast')
+    s = sound.resample(s, fs, target_fs, res_type='scipy_poly')
 
     # Compute the amplitude spectrogram and acoustic indices
-    Sxx, tn, fn, ext = sound.spectrogram(
+    Sxx, tn, fn, _ = sound.spectrogram(
         s, fs, nperseg = 1024, noverlap=0, mode='amplitude')
     df_indices_file = compute_acoustic_indices(s, Sxx, tn, fn)
     df_indices_file['fname'] = os.path.basename(path_audio)
     return df_indices_file
 
+#%%
+def batch_compute_acoustic_indices(data, path_save=None):
+    df = input_validation(data)
+    sensor_list = df.sensor_name.unique()
+    
+    # Loop through sites
+    for sensor_name in sensor_list:
+        flist_sel = df.loc[df.sensor_name==sensor_name,:]
+        
+        df_indices = pd.DataFrame()
+        for idx_row, row in flist_sel.iterrows():
+            print(f'{idx_row+1} / {flist_sel.index[-1]}: {row.fname}', end='\r')
+            # Load and resample to 48 kHz
+            df_indices_file = compute_acoustic_indices_single_file(row.path_audio)
+                
+            # add file information to dataframes
+            add_info = row[['fname', 'sensor_name', 'date']]
+            df_indices_file = pd.concat([add_info, df_indices_file])
+            
+            # append to dataframe
+            df_indices = pd.concat([df_indices, df_indices_file.to_frame().T])
+            
+        # Save dataframes
+        df_indices.to_csv(path_save+sensor_name+'_indices.csv', index=False)
+
+#%%
 def plot_acoustic_indices(df, alpha=0.5, size=3):
     # format data
     df.loc[:,'date_fmt'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
