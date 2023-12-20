@@ -47,11 +47,9 @@ plot_sensor_deployment(df)
 df.to_csv(path_save_metadata_full, index=False)
 
 #%% 3. Sample audio for overall examination - timelapse soundscapes
-audio_timelapse(
-        sample_len, sample_period='30T', date_range=date_range, path_save=path_save_timelapse,
-        save_audio=True, save_spectrogram=True, verbose=True)
+audio_timelapse(sample_len, sample_period, date_range, path_save_timelapse)
 
-#%% Check long soundscapes and if necesary make temporal adjustments to audio files
+#%% (optional) If necesary make temporal adjustments to audio files
 # from prep_utils import rename_files_time_delay
 # rename_files_time_delay(path_data_site, delay_hours=-5, verbose=True)
 
