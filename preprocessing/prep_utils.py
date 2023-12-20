@@ -39,7 +39,7 @@ def input_validation_df(df):
 # ------------------------
 # Visualization Functions
 # ------------------------
-def plot_sensor_deployment(df, ax=None):
+def plot_sensor_deployment(df, x='sensor_name', y='date', ax=None):
     """ Plot sensor deployment to have an overview of the sampling
 
     Parameters
@@ -58,40 +58,25 @@ def plot_sensor_deployment(df, ax=None):
     # Function argument validation
     df = input_validation_df(df)
 
-    df['date_fmt'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
+    df['date'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
     df_out = pd.DataFrame()
     for sensor_name, df_sensor in df.groupby('sensor_name'):
-        aux = pd.DataFrame(df_sensor.date_fmt.dt.date.value_counts())
+        aux = pd.DataFrame(df_sensor.date.dt.date.value_counts())
         aux['sensor_name'] = sensor_name
         aux.reset_index(inplace=True)
-        aux.rename(columns={'index': 'date', 'date_fmt': 'num_rec'}, inplace=True)
         df_out = pd.concat([df_out, aux], axis=0)
-
-    df_site = pd.DataFrame()
-    for sensor_name, df_sensor in df.groupby('sensor_name'):
-        df_sensor.sort_values('date', inplace=True)
-        site_info = pd.DataFrame({
-            'sensor_name': sensor_name,
-            'sample_rate': int(df_sensor.sample_rate.iloc[0]),
-            'bit_depth': int(df_sensor.bits.iloc[0]),
-            'date_ini': df_sensor.date.iloc[0][0:10],
-            'date_end': df_sensor.date.iloc[-1][0:10],
-            'time_ini': df_sensor.date.iloc[0][11:19],
-            'time_end': df_sensor.date.iloc[-1][11:19]
-            }, index=[sensor_name])
-        df_site = pd.concat([df_site, site_info], ignore_index=True)
-
+    
     if ax == None:
-        sns.scatterplot(y='date', x='sensor_name', 
-                        size='num_rec', size_norm = (10, 100), 
-                        hue='num_rec', hue_norm = (10, 100),
-                        data=df_out)
-        plt.show()
-    else:
-        sns.scatterplot(y='date', x='sensor_name', 
-                        size='num_rec', size_norm = (10, 100), 
-                        hue='num_rec', hue_norm = (10, 100),
-                        data=df_out, ax=ax)
+        _, ax = plt.subplots(figsize=[8,5])
+        
+    sns.scatterplot(y=y, x=x, 
+                    size='count', size_norm = (10, 200), 
+                    hue='count', hue_norm = (10, 200),
+                    data=df_out, ax=ax)
+    ax.grid(alpha=0.2)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
+    plt.tight_layout()
+    plt.show()
 
 #%%
 # ------------------------
