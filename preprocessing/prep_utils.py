@@ -373,22 +373,21 @@ def concat_audio(flist, sample_len=1, verbose=False, display=False):
 def audio_timelapse(
         sample_len, sample_period='30T', date_range=None, path_save=None, save_audio=True, save_spectrogram=True, verbose=True)  -> None:
     """ Build audio timelapse """
+    
     # Function argument validation
     df = input_validation_df(df)
+    date_range = pd.to_datetime(date_range)
+
     # select files to create timelapse
     df.date = pd.to_datetime(df.date)
-    idx_dates = df.date.between(
-        pd.to_datetime(date_range[0]), 
-        pd.to_datetime(date_range[1]),
-        inclusive='left'
-        )
+    idx_dates = df.date.between(date_range[0], date_range[1], inclusive='left')
     df_timelapse = df.loc[idx_dates,:]
     df_timelapse.set_index('date', inplace=True)
     df_timelapse['day'] = df_timelapse.date.dt.date
     ngroups = df_timelapse.groupby(['site', 'day']).ngroups
-    print(f'Processing {ngroups} groups:')
-    
+
     # create time lapse
+    print(f'Processing {ngroups} groups:')
     for site, df_site in df_timelapse.groupby('site'):
         print(site)
         df_site.sort_values('date_fmt', inplace=True)

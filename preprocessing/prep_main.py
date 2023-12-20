@@ -11,6 +11,7 @@ The preprocessing step includes:
 import os
 import yaml
 from maad import util
+import pandas as pd
 from prep_utils import (add_file_prefix, 
                         metadata_summary,
                         plot_sensor_deployment,
@@ -25,6 +26,10 @@ with open('../config.yaml', 'r') as f:
 path_audio = os.path.realpath(config['input_data']['path_audio'])
 path_save_metadata_full = config['preprocessing']['path_save_metadata_full']
 path_save_metadata_sample = config['preprocessing']['path_save_metadata_sample']
+sample_len =  config['preprocessing']['sample_len']
+date_range = config['preprocessing']['date_range']
+path_save_timelapse = config['preprocessing']['path_save_timelapse']
+sample_period = config['preprocessing']['sample_period']
 
 #%% 1. Add file prefix according to file names
 flist_changed = add_file_prefix(path_audio, recursive=True, verbose=True)
@@ -42,15 +47,9 @@ plot_sensor_deployment(df)
 df.to_csv(path_save_metadata_full, index=False)
 
 #%% 3. Sample audio for overall examination - timelapse soundscapes
-sample_len =  config['preprocessing']['sample_len']
-date_range = ['2023-05-01', '2023-05-02']
-path_save = '../../output/figures/'
-save_audio = True
-save_spectrogram = True
-verbose = True
-
 audio_timelapse(
-        sample_len, sample_period='30T', date_range=None, path_save=None, save_audio=True, save_spectrogram=True, verbose=True)
+        sample_len, sample_period='30T', date_range=date_range, path_save=path_save_timelapse,
+        save_audio=True, save_spectrogram=True, verbose=True)
 
 #%% Check long soundscapes and if necesary make temporal adjustments to audio files
 # from prep_utils import rename_files_time_delay
