@@ -74,6 +74,8 @@ def plot_sensor_deployment(df, x='sensor_name', y='date', ax=None):
                     hue='count', hue_norm = (10, 200),
                     data=df_out, ax=ax)
     ax.grid(alpha=0.2)
+    ax.set_title(
+        f'Sensor Deployment: {df.sensor_name.unique().shape[0]} sites | {df.shape[0]} files')
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
     plt.tight_layout()
     plt.show()
@@ -126,11 +128,6 @@ def listdir_pattern(path_dir, ends_with=None):
         if names.endswith(ends_with):
             new_list.append(names)
     return new_list
-
-
-import glob
-import os
-import time
 
 #%%
 def find_wav_files(folder_path, recursive=False):
@@ -235,31 +232,6 @@ def print_damaged_files(df):
         except:
             print(row.fname)
 
-def get_audio_metadata(path_dir, path_save, dropna=True, verbose=False) -> None:
-    """
-    Extracts audio metadata from files in a directory and saves it to a CSV file.
-
-    Args:
-        path_dir (str): The directory containing audio files.
-        path_save (str): The path where the metadata CSV file will be saved.
-        dropna (bool, optional): If True, remove rows with missing values (default: True).
-        verbose (bool, optional): If True, display progress and information (default: False).
-
-    Returns:
-        None
-
-    Note:
-        This function extracts metadata from audio files in the specified directory using the 'util.get_metadata_dir' function.
-        It adds a 'site' column based on the file names, drops rows with missing values if 'dropna' is True,
-        and saves the resulting DataFrame to a CSV file at 'path_save'.
-    """
-    df = util.get_metadata_dir(path_dir, verbose=verbose)
-    df['site'] = df.fname.str.split('_').str[0]  # include site column
-    if dropna:
-        df.dropna(inplace=True)  # remove problematic files
-    # save dataframes to csv
-    df.to_csv(path_save, index=False)
-
 def random_sample_metadata(df, n_samples_per_site=10, hour_sel=None, random_state=None):
     """ Get a random sample form metadata DataFrame """
     if hour_sel==None:
@@ -356,11 +328,11 @@ def concat_audio(flist, sample_len=1, verbose=False, display=False):
     return long_wav, fs
 
 def audio_timelapse(
-        sample_len, sample_period='30T', date_range=None, path_save=None, save_audio=True, save_spectrogram=True, verbose=True)  -> None:
+        data, sample_len, sample_period='30T', date_range=None, path_save=None, save_audio=True, save_spectrogram=True, verbose=True)  -> None:
     """ Build audio timelapse """
     
     # Function argument validation
-    df = input_validation_df(df)
+    df = input_validation_df(data)
     date_range = pd.to_datetime(date_range)
 
     # select files to create timelapse
