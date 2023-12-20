@@ -277,8 +277,9 @@ def metadata_summary(df):
             'date_end': str(df_site.date_fmt.max()),
             'n_recordings': len(df_site),
             'duration': str(df_site.date_fmt.max() - df_site.date_fmt.min()),
-            'sample_length': df_site.length.mean().round(),
             'time_diff': df_site['date_fmt'].sort_values().diff().median(),
+            'sample_length': df_site.length.median().round(),
+            'sample_rate': df.sample_rate.astype(int)[0],
         }
         df_summary[site] = site_summary
     df_summary = pd.DataFrame(df_summary).T
