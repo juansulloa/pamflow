@@ -390,7 +390,7 @@ def main():
     args = parser.parse_args()
 
     if args.operation == "get_audio_metadata":
-        result = get_audio_metadata(args.path, args.path_save, args.dropna, args.verbose)
+        result = util.get_audio_metadata(args.path, args.path_save, args.dropna, args.verbose)
     elif args.operation == "add_file_prefix":
         result = add_file_prefix(args.path, args.recursive, args.verbose)
     elif args.operation == "plot_sensor_deployment":

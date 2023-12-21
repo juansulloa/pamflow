@@ -13,9 +13,9 @@ preprocessing:
 
 # Configuration parameters related to the acoustic indices workflow
 acoustic_indices:
-  path_save_df: '../../output/dataframes_ai/'  # location to save the dataframe
-  path_save_fig: '../../output/figures/'  # location to save the figure
   target_fs: 48000  # sampling rate for analysis
+  n_threads: 1
+  group_by_site: True
 
 # Configuration parameters related to the graphical soundscapes workflow
 graph_soundscapes:
