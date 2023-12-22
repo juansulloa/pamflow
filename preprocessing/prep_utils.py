@@ -284,7 +284,7 @@ def metadata_summary(df):
             'n_recordings': len(df_site),
             'duration': str(df_site.date_fmt.max() - df_site.date_fmt.min()),
             'time_diff': df_site['date_fmt'].sort_values().diff().median(),
-            'sample_length': df_site.length.median().round(),
+            'sample_length': df_site.length.median(),
             'sample_rate': df.sample_rate.astype(int)[0],
         }
         df_summary[site] = site_summary
@@ -313,9 +313,9 @@ def concat_audio(flist, sample_len=1, verbose=False, display=False):
     
     # Compute long wav
     long_wav = list()
-    for idx, fname in enumerate(flist):
+    for idx, fname in enumerate(flist, start=1):
         if verbose:
-            print(fname)
+            print(f'{idx} / {len(flist)} : {os.path.basename(fname)}', end='\r')
         s, fs = sound.load(fname)
         s = sound.trim(s, fs, 0, sample_len)
         long_wav.append(s)
@@ -363,7 +363,7 @@ def audio_timelapse(
             sound.write(f'{path_save}{site}_timelapse.wav', fs, long_wav, bit_depth=16)
         
         if save_spectrogram:
-            print('under construction')
+            print('Saving spectrogram... TODO')
 
 #%%
 # ----------------

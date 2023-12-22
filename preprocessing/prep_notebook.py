@@ -12,7 +12,7 @@ import os
 import yaml
 from maad import util
 import pandas as pd
-from prep_utils import (add_file_prefix, 
+from prep_utils import (add_file_prefix,
                         metadata_summary,
                         plot_sensor_deployment,
                         random_sample_metadata,
