@@ -19,8 +19,6 @@ acoustic_indices:
 
 # Configuration parameters related to the graphical soundscapes workflow
 graph_soundscapes:
-  path_save_gs: '../../output/dataframes_gs/'  # location to save the dataframe
-  path_save_fig: '../../output/figures/'  # location to save the figure
   target_fs: 48000  # target sampling frequency
   nperseg: 256  # window size to compute the spectrogram
   noverlap: 0  # overlap between windows to compute the spectrogram
