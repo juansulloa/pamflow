@@ -33,16 +33,38 @@ pip install -r requirements.txt
 
 ## Getting Started
 
-To use this project, follow these general steps:
-
-1. Organize directories
+### 1. Organize directories
+Organize files accorind to [this structure](#directory-structure).
     - Sound files must be organized into subdirectories based on the recording device.
-    - Rename the dorectory where you have this repository as 'workflows'.
-    - Create the output directory and its subdirectories 'figures' and 'metadata'.
-2. Edit the `config.yaml` file in the root directory to point to your sound files and adjust the settings according to your analysis needs.
-3. Run the `*_main.py` scripts from each directory to prepare the data, extract features from your sound files and visualize the results. 
+    - Rename the directory where you have this repository as 'workflows'.
+    - Create the output directories and its subdirectories 'figures' and 'metadata' and others.
 
-The scripts include explanations of each step in the analysis process, including loading sound data, feature extraction, data visualization, and statistical analysis.
+### 2. Set configuration
+Edit the `config.yaml` file in the root directory to point to your sound files and adjust the settings according to your analysis needs.
+
+### 3. Run scripts
+Run the scripts from each directory to prepare the data and extract features. 
+
+#### 3.1. Preprocessing
+In the `preprocessing` module, execute the `prep_notebook.py` script **line by line**. Carefully verify the sites that did not work, remove noise, and unwanted files. The script includes detailed explanations for each step in the analysis process. By the end, you should have a curated file list with associated metadata saved in a `*.csv` file.
+
+#### 3.2. Compute acoustic indices
+Navigate to the `acoustic_indices` directory and compute acoustic indices using the Command Line Interface. 
+```bash
+cd acoustic_indices
+python compute_indices.py -i ../../output/metadata.csv -o ../../output/dataframes_ai/ -c ../config.yml
+```
+
+#### 3.3. Compute graphical soundscapes
+Navigate to the `graphical_soundscape` directory. Verify that the settings are appropriate for your proyect. Once adjusted, compute the graphical soundscape for all files.
+```bash
+cd graphical_soundscape
+python compute_graph.py spectrogram_local_max -i test_audio.wav -d  # test configuration
+python compute_graph.py graphical_soundscape -i ../../output/metadata.csv -o ../../output/dataframes_gs/ -c ../config.yml
+```
+
+### 4. Visualize and perform statistical analiyses
+Since the statistical analyses are project-dependent, specific visualization tools should be chosen to aid in the process.
 
 ## Directory Structure
 
