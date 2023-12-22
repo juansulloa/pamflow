@@ -130,16 +130,16 @@ def batch_compute_acoustic_indices(data, path_save=None):
         df_indices.to_csv(path_save+sensor_name+'_indices.csv', index=False)
 
 #%% Parellel computing
-def compute_indices_parallel(data, target_fs=48000, n_threads=4):
+def compute_indices_parallel(data, target_fs=48000, n_jobs=4):
     df = input_validation(data)
-    if n_threads == -1:
-        n_threads = os.cpu_count()
+    if n_jobs == -1:
+        n_jobs = os.cpu_count()
 
-    print(f'Computing acoustic indices for {df.shape[0]} files with {n_threads} threads')
+    print(f'Computing acoustic indices for {df.shape[0]} files with {n_jobs} threads')
     
     # Use concurrent.futures for parelell execution
     files = df.path_audio.to_list()
-    with concurrent.futures.ProcessPoolExecutor(max_workers=n_threads) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=n_jobs) as executor:
         
         # Use submit for each task
         futures = {executor.submit(compute_acoustic_indices_single_file, file, target_fs): file for file in files}
@@ -176,11 +176,11 @@ def compute_indices_sequential(data, target_fs):
     df_out = pd.DataFrame(results)
     return df_out
 
-def compute_indices(data, target_fs, n_threads):
-    if n_threads == 1:
+def compute_indices(data, target_fs, n_jobs):
+    if n_jobs == 1:
         df_out = compute_indices_sequential(data, target_fs)
     else:
-        df_out = compute_indices_parallel(data, target_fs, n_threads)
+        df_out = compute_indices_parallel(data, target_fs, n_jobs)
     return df_out
 
 #%% 
@@ -188,9 +188,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Compute acoustic indices on audio data")
     
-    parser.add_argument("--input", "-i", type=str, help="Path to directory with audio files")
-    parser.add_argument("--output", "-o", type=str, help="Path and filename to save results")
-    parser.add_argument("--config", "-c", type=str, help="Path to config file")
+    parser.add_argument("--input", "-i", type=str, 
+                    help="Path to metadata or directory with audio files. "
+                         "If providing a directory, all audio files in the directory will be processed.")
+    parser.add_argument("--output", "-o", type=str,
+                    help="Path and filename to save results. "
+                         "Results will be saved to a file with the specified name at the specified location.")
+    parser.add_argument("--config", "-c", type=str,
+                    help="Path to config file. "
+                         "The config file should contain all additional settings for your script.")
     args = parser.parse_args()
 
     # Load configuration
@@ -198,17 +204,17 @@ if __name__ == '__main__':
     config_file = args.config
     config = load_config(config_file)
     target_fs = config["acoustic_indices"]["target_fs"]
-    n_threads = config["acoustic_indices"]["n_threads"]
+    n_jobs = config["acoustic_indices"]["n_jobs"]
     group_by_site = config["acoustic_indices"]["group_by_site"]
     
     if group_by_site:  # saves results per site
         for site, df_site in df.groupby('sensor_name'):
-            df_out = compute_indices(df, target_fs, n_threads)
+            df_out = compute_indices(df, target_fs, n_jobs)
             fname_save = os.path.join(args.output, f'{site}_indices.csv')
             df_out.to_csv(fname_save, index=False)
             print(f'{site} Done! Results are stored at {fname_save}')
 
     else:
-        df_out = compute_indices(df, target_fs, n_threads)
+        df_out = compute_indices(df, target_fs, n_jobs)
         df_out.to_csv(args.output, index=False)
         print(f'Done! Results are stored at {args.output}')

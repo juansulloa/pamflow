@@ -14,11 +14,9 @@ Acoustic indices computed include:
 
 """
 #%%
-import os
-import yaml
 import pandas as pd
-from maad import sound
 import seaborn as sns
+import matplotlib.pyplot as plt
 
 #%%
 def plot_acoustic_indices(df, alpha=0.5, size=3):

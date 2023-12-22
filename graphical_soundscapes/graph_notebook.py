@@ -8,7 +8,7 @@ import yaml
 from maad import sound, util
 from maad.rois import spectrogram_local_max
 from maad.features import graphical_soundscape, plot_graph
-import matplotlib.pyplot as plt
+from gs_utils import graphical_soundscape_v2
 
 #%% Load configuration files
 # Open the config file and load its contents into a dictionary
@@ -26,7 +26,7 @@ min_distance = config["graph_soundscapes"]["min_distance"]
 threshold_abs = config["graph_soundscapes"]["threshold_abs"]
 
 #%% Test output on a single file
-fname = '/Volumes/lacie_exfat/Downloads/H79_sample/H79_20230501_235500.WAV'
+fname = '/Users/jsulloa/Downloads/H16/H16_20230420_053000.WAV'
 s, fs = sound.load(fname)
 Sxx, tn, fn, ext = sound.spectrogram(s, fs, nperseg=nperseg, noverlap=noverlap)
 Sxx_db = util.power2dB(Sxx, db_range=db_range)
@@ -43,7 +43,7 @@ peaks = spectrogram_local_max(
 df = pd.read_csv(path_metadata, dtype={'time': 'str'})
 for site, df_site in df.groupby('site'):
     graph = graphical_soundscape(
-        df_site.reset_index(drop=True),
+        '/Users/jsulloa/Downloads/H16/',
         threshold_abs,
         target_fs=target_fs,
         nperseg=nperseg,

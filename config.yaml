@@ -14,8 +14,8 @@ preprocessing:
 # Configuration parameters related to the acoustic indices workflow
 acoustic_indices:
   target_fs: 48000  # sampling rate for analysis
-  n_threads: 1
   group_by_site: True
+  n_jobs: 1
 
 # Configuration parameters related to the graphical soundscapes workflow
 graph_soundscapes:
@@ -27,3 +27,5 @@ graph_soundscapes:
   db_range: 80  # dB range for the spectrogram
   min_distance: 5  # minimum distance between peaks
   threshold_abs: -50  # threshold for detecting peaks
+  group_by_site: True
+  n_jobs: -1
