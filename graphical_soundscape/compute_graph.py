@@ -36,7 +36,7 @@ def input_validation(data_input):
             print('Loading metadata from csv file')
             try:
                 # Attempt to read all wav data from the provided file path.
-                df = pd.read_csv(data_input) 
+                df = pd.read_csv(data_input, dtype={'time': str}) 
             except FileNotFoundError:
                 raise FileNotFoundError(f"File not found: {data_input}")
     else:
