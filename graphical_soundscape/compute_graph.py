@@ -69,7 +69,10 @@ if __name__ == "__main__":
     parser.add_argument("--config", "-c", type=str,
                     help="Path to config file. "
                          "The config file should contain all additional settings for your script.")
-    parser.add_argument("--display", "-d", action="store_true", help="Enable to display plot")
+    parser.add_argument("--display", "-d", action="store_true", 
+                    help="Enable to display plot")
+    parser.add_argument( "--sites", "-s", nargs="+", default=None,
+                    help="Specify sites to execute the operation (default: None)")
     args = parser.parse_args()
     
     # Load configuration
@@ -83,6 +86,7 @@ if __name__ == "__main__":
     threshold_abs = config["graph_soundscapes"]["threshold_abs"]
     n_jobs = config["graph_soundscapes"]["n_jobs"]
     group_by_site = config["graph_soundscapes"]["group_by_site"]
+    select_sites = args.sites
 
     # Operations
     if args.operation == "spectrogram_local_max":
@@ -96,6 +100,18 @@ if __name__ == "__main__":
 
     elif args.operation == "graphical_soundscape":
         df = input_validation(args.input)
+        
+        # If file list provided filter dataframe
+        if select_sites is None:
+            n_sites = df.groupby('sensor_name').ngroups
+            site_list = df.sensor_name.unique()
+        else:
+            df = df[df['sensor_name'].isin(select_sites)]
+            n_sites = df.groupby('sensor_name').ngroups
+            site_list = df.sensor_name.unique()
+        print(f'Computing graph over {n_sites} sites: {site_list}')
+
+        # Group by site
         if group_by_site:  # saves results per site
             for site, df_site in df.groupby('sensor_name'):
                 df_out = graphical_soundscape(
@@ -104,7 +120,8 @@ if __name__ == "__main__":
                 fname_save = os.path.join(args.output, f'{site}_graph.csv')
                 df_out.to_csv(fname_save, index=False)
                 print(f'{site} Done! Results are stored at {fname_save}')
-
+        
+        # Compute over all files
         else:
             df_out = graphical_soundscape(
                 df, threshold_abs, 'path_audio', 'time', target_fs, nperseg, 
@@ -112,6 +129,7 @@ if __name__ == "__main__":
             df_out.to_csv(args.output, index=False)
             print(f'Done! Results are stored at {args.output}')
         
+        # Display result
         if args.display:
             plot_graph(df_out)
             plt.show()

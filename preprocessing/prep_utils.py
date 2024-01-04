@@ -181,6 +181,9 @@ def add_file_prefix(folder_name: str, recursive:bool=False, verbose:bool=False) 
     # remove files that already have the parent directory name
     flist = [f for f in flist if (not f.name.startswith(f.parent.name+'_'))]
 
+    if verbose:
+        print(f'Number of WAVE files detected with no prefix: {len(flist)}')
+        print('Renaming files...')
     # Loop and change names
     flist_changed = list()
     for fname in flist:
@@ -193,7 +196,7 @@ def add_file_prefix(folder_name: str, recursive:bool=False, verbose:bool=False) 
             print(f"Error occurred while renaming {fname}: {e}")
     
     if verbose:
-        print(f'Number of WAVE files detected with no prefix: {len(flist)}')
+        print('Process completed!')
         print(f'Number of WAVE files renamed: {len(flist_changed)}')
         
     return flist_changed

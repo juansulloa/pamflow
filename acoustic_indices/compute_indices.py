@@ -72,7 +72,7 @@ def compute_acoustic_indices(s, Sxx, tn, fn):
     BI = features.bioacoustics_index(Sxx, fn, flim=(2000, 11000))
     NP = features.number_of_peaks(Sxx_power, fn, mode='linear', min_peak_val=0, 
                                   min_freq_dist=100, slopes=None, prominence=1e-6)
-    SC, _, _ = features.spectral_cover(Sxx_dB, fn, dB_threshold=-65, flim_LF=(1000,20000))
+    SC, _, _ = features.spectral_cover(Sxx_dB, fn, dB_threshold=-70, flim_LF=(1000,20000))
     
     # Structure data into a pandas series
     df_indices = pd.Series({
@@ -187,7 +187,6 @@ def compute_indices(data, target_fs, n_jobs):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Compute acoustic indices on audio data")
-    
     parser.add_argument("--input", "-i", type=str, 
                     help="Path to metadata or directory with audio files. "
                          "If providing a directory, all audio files in the directory will be processed.")
@@ -197,6 +196,8 @@ if __name__ == '__main__':
     parser.add_argument("--config", "-c", type=str,
                     help="Path to config file. "
                          "The config file should contain all additional settings for your script.")
+    parser.add_argument( "--sites", "-s", nargs="+", default=None,
+                    help="Specify sites to execute the operation (default: None)")
     args = parser.parse_args()
 
     # Load configuration
@@ -206,10 +207,22 @@ if __name__ == '__main__':
     target_fs = config["acoustic_indices"]["target_fs"]
     n_jobs = config["acoustic_indices"]["n_jobs"]
     group_by_site = config["acoustic_indices"]["group_by_site"]
-    
-    if group_by_site:  # saves results per site
+    select_sites = args.sites
+
+    # If file list provided filter dataframe
+    if select_sites is None:
+        n_sites = df.groupby('sensor_name').ngroups
+        site_list = df.sensor_name.unique()
+    else:
+        df = df[df['sensor_name'].isin(select_sites)]
+        n_sites = df.groupby('sensor_name').ngroups
+        site_list = df.sensor_name.unique()
+    print(f'Computing indices over {n_sites} sites: {site_list}')
+
+    # Format output per site or per batch
+    if group_by_site:  
         for site, df_site in df.groupby('sensor_name'):
-            df_out = compute_indices(df, target_fs, n_jobs)
+            df_out = compute_indices(df_site, target_fs, n_jobs)
             fname_save = os.path.join(args.output, f'{site}_indices.csv')
             df_out.to_csv(fname_save, index=False)
             print(f'{site} Done! Results are stored at {fname_save}')
