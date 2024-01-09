@@ -37,7 +37,6 @@ flist_changed = add_file_prefix(path_audio, recursive=True, verbose=True)
 #%% 2. Get audio metadata and verify acoustic sampling quality
 df = util.get_metadata_dir(path_audio, verbose=True)
 df.dropna(inplace=True)  # remove problematic files
-df['site'] = df.fname.str.split('_').str[0]  # include site column
 
 # Verify acoustic sampling quality
 metadata_summary(df)

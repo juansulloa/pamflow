@@ -38,10 +38,10 @@ peaks = spectrogram_local_max(
     display=True,
 )
 
-#%% Compute graphical soundscape per site
+#%% Compute graphical soundscape per sensor name
 
 df = pd.read_csv(path_metadata, dtype={'time': 'str'})
-for site, df_site in df.groupby('site'):
+for site, df_site in df.groupby('sensor_name'):
     graph = graphical_soundscape(
         '/Users/jsulloa/Downloads/H16/',
         threshold_abs,
