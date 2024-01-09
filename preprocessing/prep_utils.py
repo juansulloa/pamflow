@@ -14,13 +14,14 @@ from pathlib import Path
 from os import listdir
 from maad import sound, util
 import matplotlib.pyplot as plt
+from datetime import datetime
 import seaborn as sns
 
 # ----------------------------------
 # Main Utilities For Other Functions
 # ----------------------------------
 
-# Function argument validation
+#%% Function argument validation
 def input_validation(data_input):
     """ Validate dataframe or path input argument """
     if isinstance(data_input, pd.DataFrame):
@@ -41,6 +42,12 @@ def input_validation(data_input):
         raise ValueError("Input 'data' must be either a Pandas DataFrame, a file path string, or None.")
     return df
 
+def date_validation(date_str):
+    try:
+        return pd.to_datetime(date_str, format="%Y-%m-%d")
+    except ValueError:
+        raise argparse.ArgumentTypeError("Invalid date format. Use 'YYYY-MM-DD'.")
+    
 #%%
 # ------------------------
 # Visualization Functions
@@ -343,7 +350,7 @@ def audio_timelapse(
     
     # Function argument validation
     df = input_validation(data)
-    date_range = pd.to_datetime(date_range)
+    date_range = [date_validation(date_range[0]), date_range[1]]
 
     # select files to create timelapse
     df.date = pd.to_datetime(df.date)
@@ -384,24 +391,44 @@ def main():
                  "add_file_prefix"], 
         help="Preprocessing operation")
     
-    parser.add_argument("--path", type=str, help="Path to directory to search")
-    parser.add_argument("--path_save", type=str, help="Path and filename to save results")
-    parser.add_argument("--dropna", action="store_true", help="Drop NAN values from metadata")
-    parser.add_argument("--length", type=float, help="Sample length for audio timelapse")
-    parser.add_argument("--recursive", "-r", action="store_true", help="Enable recursive mode")
-    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose mode")
+    parser.add_argument("--input", "-i", 
+                        type=str, help="Path to directory to search")
+    parser.add_argument("--output", "-o", 
+                        type=str, help="Path and filename to save results")
+    parser.add_argument("--sample_length", "-sl", 
+                        type=float, help="Sample length for audio timelapse")
+    parser.add_argument("--date_ini", "-di",
+                        type=str, help="Initial date for audio timelapse")
+    parser.add_argument("--date_end", "-de",
+                        type=str, help="End date for audio timelapse")
+    parser.add_argument("--recursive", "-r", 
+                        action="store_true", help="Enable recursive mode")
+    parser.add_argument("--quiet", "-q", 
+                        action="store_true", help="Enable quiet mode")
     args = parser.parse_args()
+    
+    verbose = 0 if args.quiet else 1
 
     if args.operation == "get_audio_metadata":
-        result = util.get_audio_metadata(args.path, args.path_save, args.dropna, args.verbose)
+        df = util.get_metadata_dir(args.input, verbose)
+        df.dropna(inplace=True)  # remove problematic files
+        df.to_csv(args.output, index=False)
+        plot_sensor_deployment(df)
+        result = metadata_summary(df)
+    
     elif args.operation == "add_file_prefix":
-        result = add_file_prefix(args.path, args.recursive, args.verbose)
+        result = add_file_prefix(args.input, args.recursive, verbose)
+    
     elif args.operation == "plot_sensor_deployment":
-        result = plot_sensor_deployment(args.path)
+        result = plot_sensor_deployment(args.input)
+    
     elif args.operation == "audio_timelapse":
-        result = audio_timelapse(args.path, args.length, args.path_save)
+        date_range = [args.date_ini, args.date_end]
+        result = audio_timelapse(
+        args.input, args.sample_length, sample_period='30T', date_range=date_range, path_save=args.output, save_audio=True, verbose=True)
+    
     elif args.operation == "metadata_summary":
-        result = metadata_summary(args.path)
+        result = metadata_summary(args.input)
 
     print("Result:", result)
 

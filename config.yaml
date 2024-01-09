@@ -24,6 +24,6 @@ graph_soundscapes:
   noverlap: 0  # overlap between windows to compute the spectrogram
   db_range: 80  # dB range for the spectrogram
   min_distance: 5  # minimum distance between peaks
-  threshold_abs: -50  # threshold for detecting peaks
+  threshold_abs: -55  # threshold for detecting peaks
   group_by_site: True
   n_jobs: -1

@@ -118,7 +118,7 @@ if __name__ == "__main__":
                     df_site, threshold_abs, 'path_audio', 'time', target_fs, nperseg, 
                     noverlap, db_range, min_distance, n_jobs)
                 fname_save = os.path.join(args.output, f'{site}_graph.csv')
-                df_out.to_csv(fname_save, index=False)
+                df_out.to_csv(fname_save)
                 print(f'{site} Done! Results are stored at {fname_save}')
         
         # Compute over all files

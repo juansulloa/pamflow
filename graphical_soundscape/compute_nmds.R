@@ -9,15 +9,13 @@ sites = list.files(path_gs, pattern='*.csv')
 tf_bins = list()
 for(site in sites){
   gs = read.csv(paste(path_gs,site,sep=''))
-  sensor_name = substr(site, 1, 4)
+  sensor_name = strsplit(site, "_")[[1]][1]
   tf_bins[[sensor_name]] = as.vector(t(gs[,-1]))
 }
 
 # list to dataframe
 tf_bins = as.data.frame(do.call(rbind, tf_bins))
 # remove outliers
-#xx = rowSums(tf_bins>0)
-#tf_bins = tf_bins[names(xx[xx>100]),]
 rm_rows = c('G005','G012','G068', 'G083', 'G024')
 tf_bins = tf_bins[!is.element(row.names(tf_bins), rm_rows),]
 
@@ -37,7 +35,7 @@ plt_data = merge(plt_data, anh_to_gxx, by = 'sensor_name')
 
 plot(plt_data[c('MDS1', 'MDS2')], col='gray', pch=16, bty='n',xlab='NMDS 1', ylab='NMDS 2', cex=0.5, cex.lab=1)
 abline(v=0,col='gray',lty=2);abline(h=0,col='gray',lty=2)
-s.class(plt_data[c('MDS1', 'MDS2')], fac=factor(plt_data$Cobertura), col = colors, add.plot = T)
+s.class(plt_data[c('MDS1', 'MDS2')], fac=factor(plt_data$group), col = colors, add.plot = T)
 
 plot(plt_data[c('MDS1', 'MDS2')], col='gray', pch=16, bty='n',xlab='NMDS 1', ylab='NMDS 2', cex=0.5, cex.lab=1)
 abline(v=0,col='gray',lty=2);abline(h=0,col='gray',lty=2)
