@@ -285,15 +285,15 @@ def metadata_summary(df):
     # Function argument validation
     df = input_validation(df)
         
-    df['date_fmt'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
+    df['date'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
     df_summary = {}
     for site, df_site in df.groupby('sensor_name'):
         site_summary = {
-            'date_ini': str(df_site.date_fmt.min()),
-            'date_end': str(df_site.date_fmt.max()),
+            'date_ini': str(df_site.date.min()),
+            'date_end': str(df_site.date.max()),
             'n_recordings': len(df_site),
-            'duration': str(df_site.date_fmt.max() - df_site.date_fmt.min()),
-            'time_diff': df_site['date_fmt'].sort_values().diff().median(),
+            'duration': str(df_site.date.max() - df_site.date.min()),
+            'time_diff': df_site['date'].sort_values().diff().median(),
             'sample_length': df_site.length.median(),
             'sample_rate': df.sample_rate.astype(int)[0],
         }

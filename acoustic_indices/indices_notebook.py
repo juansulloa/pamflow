@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 #%%
 def plot_acoustic_indices(df, alpha=0.5, size=3):
     # format data
-    df.loc[:,'date_fmt'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
+    df.loc[:,'date'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
     df['time'] = df.date.str[11:13].astype(int)
     # plot
     fig, ax = plt.subplots(nrows=3, ncols=3, figsize=(10, 10))
