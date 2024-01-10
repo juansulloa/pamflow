@@ -8,46 +8,13 @@ References:
   - Campos-Cerqueira, M., Aide, T.M., 2017. Changes in the acoustic structure and composition along a tropical elevational gradient. JEA 1, 1–1. https://doi.org/10.22261/JEA.PNCO7I
 """
 import os
-import yaml
 import argparse
-import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 from maad import sound, util
 from maad.rois import spectrogram_local_max
 from maad.features import graphical_soundscape, plot_graph
+from pamflow.preprocess.utils import input_validation, load_config
 
-#%% Load configuration file
-def load_config(config_file):
-    with open(config_file, "r") as f:
-        config = yaml.safe_load(f)
-    return config
-
-#%% Function argument validation
-def input_validation(data_input):
-    """ Validate dataframe or path input argument """
-    if isinstance(data_input, pd.DataFrame):
-        df = data_input
-    elif isinstance(data_input, str):
-        if os.path.isdir(data_input):
-            print('Collecting metadata from directory path')
-            df = util.get_metadata_dir(data_input)
-        elif os.path.isfile(data_input) and data_input.lower().endswith(".csv"):
-            print('Loading metadata from csv file')
-            try:
-                # Attempt to read all wav data from the provided file path.
-                df = pd.read_csv(data_input, dtype={'time': str}) 
-            except FileNotFoundError:
-                raise FileNotFoundError(f"File not found: {data_input}")
-    else:
-        raise ValueError("Input 'data' must be either a Pandas DataFrame, a file path string, or None.")
-    return df
-
-
-#%%
-# ----------------
-# Main Entry Point
-# ----------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Compute graphical soundscape on audio data.")
@@ -95,7 +62,7 @@ if __name__ == "__main__":
         Sxx, tn, fn, ext = sound.spectrogram(s, fs, nperseg=nperseg, noverlap=noverlap)
         Sxx_db = util.power2dB(Sxx, db_range=db_range)
         result = spectrogram_local_max(Sxx_db, tn, fn, ext, min_distance, 
-                                       threshold_abs, display=args.display)
+                                       threshold_abs, display=True)
         plt.show()
 
     elif args.operation == "graphical_soundscape":

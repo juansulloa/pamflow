@@ -8,7 +8,6 @@ import yaml
 from maad import sound, util
 from maad.rois import spectrogram_local_max
 from maad.features import graphical_soundscape, plot_graph
-from gs_utils import graphical_soundscape_v2
 
 #%% Load configuration files
 # Open the config file and load its contents into a dictionary

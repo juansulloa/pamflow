@@ -10,37 +10,41 @@ import shutil
 import pandas as pd
 import numpy as np
 import glob
+import yaml
 from pathlib import Path
 from os import listdir
 from maad import sound, util
 import matplotlib.pyplot as plt
-from datetime import datetime
 import seaborn as sns
 
 # ----------------------------------
 # Main Utilities For Other Functions
 # ----------------------------------
+#%% Load configuration file
+def load_config(config_file):
+    with open(config_file, "r") as f:
+        config = yaml.safe_load(f)
+    return config
 
 #%% Function argument validation
 def input_validation(data_input):
     """ Validate dataframe or path input argument """
     if isinstance(data_input, pd.DataFrame):
-        df = data_input
+        return data_input
+
     elif isinstance(data_input, str):
         if os.path.isdir(data_input):
             print('Collecting metadata from directory path')
-            df = util.get_metadata_dir(data_input)
-            print(f'Done! {df.shape[0]} files found')
+            return util.get_metadata_dir(data_input, verbose=True)
         elif os.path.isfile(data_input) and data_input.lower().endswith(".csv"):
             print('Loading metadata from csv file')
             try:
-                # Attempt to read all wav data from the provided file path.
-                df = pd.read_csv(data_input) 
+                return pd.read_csv(data_input) 
             except FileNotFoundError:
                 raise FileNotFoundError(f"File not found: {data_input}")
-    else:
+    
+    else: 
         raise ValueError("Input 'data' must be either a Pandas DataFrame, a file path string, or None.")
-    return df
 
 def date_validation(date_str):
     try:
@@ -188,10 +192,11 @@ def add_file_prefix(folder_name: str, recursive:bool=False, verbose:bool=False) 
     # remove files that already have the parent directory name
     flist = [f for f in flist if (not f.name.startswith(f.parent.name+'_'))]
 
+    # Loop and change names
     if verbose:
         print(f'Number of WAVE files detected with no prefix: {len(flist)}')
         print('Renaming files...')
-    # Loop and change names
+    
     flist_changed = list()
     for fname in flist:
         prefix = fname.parent.name
@@ -374,63 +379,3 @@ def audio_timelapse(
         
         if save_spectrogram:
             print('Saving spectrogram... TODO')
-
-#%%
-# ----------------
-# Main Entry Point
-# ----------------
-def main():
-    parser = argparse.ArgumentParser(
-        description="Perform preprocessing operations on audio data.")
-    parser.add_argument(
-        "operation", 
-        choices=["get_audio_metadata", 
-                 "metadata_summary",
-                 "plot_sensor_deployment",
-                 "audio_timelapse",
-                 "add_file_prefix"], 
-        help="Preprocessing operation")
-    
-    parser.add_argument("--input", "-i", 
-                        type=str, help="Path to directory to search")
-    parser.add_argument("--output", "-o", 
-                        type=str, help="Path and filename to save results")
-    parser.add_argument("--sample_length", "-sl", 
-                        type=float, help="Sample length for audio timelapse")
-    parser.add_argument("--date_ini", "-di",
-                        type=str, help="Initial date for audio timelapse")
-    parser.add_argument("--date_end", "-de",
-                        type=str, help="End date for audio timelapse")
-    parser.add_argument("--recursive", "-r", 
-                        action="store_true", help="Enable recursive mode")
-    parser.add_argument("--quiet", "-q", 
-                        action="store_true", help="Enable quiet mode")
-    args = parser.parse_args()
-    
-    verbose = 0 if args.quiet else 1
-
-    if args.operation == "get_audio_metadata":
-        df = util.get_metadata_dir(args.input, verbose)
-        df.dropna(inplace=True)  # remove problematic files
-        df.to_csv(args.output, index=False)
-        plot_sensor_deployment(df)
-        result = metadata_summary(df)
-    
-    elif args.operation == "add_file_prefix":
-        result = add_file_prefix(args.input, args.recursive, verbose)
-    
-    elif args.operation == "plot_sensor_deployment":
-        result = plot_sensor_deployment(args.input)
-    
-    elif args.operation == "audio_timelapse":
-        date_range = [args.date_ini, args.date_end]
-        result = audio_timelapse(
-        args.input, args.sample_length, sample_period='30T', date_range=date_range, path_save=args.output, save_audio=True, verbose=True)
-    
-    elif args.operation == "metadata_summary":
-        result = metadata_summary(args.input)
-
-    print("Result:", result)
-
-if __name__ == "__main__":
-    main()

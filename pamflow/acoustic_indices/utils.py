@@ -1,44 +1,18 @@
 """ Utility functions to compute acoustic indices """
 
 import os
-import argparse
-import yaml
 import concurrent.futures
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 from maad import sound, features, util
-
-#%% Load configuration file
-def load_config(config_file):
-    with open(config_file, "r") as f:
-        config = yaml.safe_load(f)
-    return config
-
-#%% Function argument validation
-def input_validation(data_input):
-    """ Validate dataframe or path input argument """
-    if isinstance(data_input, pd.DataFrame):
-        df = data_input
-    elif isinstance(data_input, str):
-        if os.path.isdir(data_input):
-            print('Collecting metadata from directory path')
-            df = util.get_metadata_dir(data_input)
-            print(f'Done! {df.shape[0]} files found')
-        elif os.path.isfile(data_input) and data_input.lower().endswith(".csv"):
-            print('Loading metadata from csv file')
-            try:
-                # Attempt to read all wav data from the provided file path.
-                df = pd.read_csv(data_input) 
-            except FileNotFoundError:
-                raise FileNotFoundError(f"File not found: {data_input}")
-    else:
-        raise ValueError("Input 'data' must be either a Pandas DataFrame, a file path string, or None.")
-    return df
+from pamflow.preprocess.utils import input_validation
 
 #%%
 def compute_acoustic_indices(s, Sxx, tn, fn):
-    """
+    """ 
+    Main function that defines which and how indices will be computed.
+    
     Parameters
     ----------
     s : 1d numpy array
@@ -116,7 +90,7 @@ def batch_compute_acoustic_indices(data, path_save=None):
         df_indices = pd.DataFrame()
         for idx_row, row in flist_sel.iterrows():
             print(f'{idx_row+1} / {flist_sel.index[-1]}: {row.fname}', end='\r')
-            # Load and resample to 48 kHz
+            # Load and resample if needed
             df_indices_file = compute_acoustic_indices_single_file(row.path_audio)
                 
             # add file information to dataframes
@@ -182,52 +156,3 @@ def compute_indices(data, target_fs, n_jobs):
     else:
         df_out = compute_indices_parallel(data, target_fs, n_jobs)
     return df_out
-
-#%% 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description="Compute acoustic indices on audio data")
-    parser.add_argument("--input", "-i", type=str, 
-                    help="Path to metadata or directory with audio files. "
-                         "If providing a directory, all audio files in the directory will be processed.")
-    parser.add_argument("--output", "-o", type=str,
-                    help="Path and filename to save results. "
-                         "Results will be saved to a file with the specified name at the specified location.")
-    parser.add_argument("--config", "-c", type=str,
-                    help="Path to config file. "
-                         "The config file should contain all additional settings for your script.")
-    parser.add_argument( "--sites", "-s", nargs="+", default=None,
-                    help="Specify sites to execute the operation (default: None)")
-    args = parser.parse_args()
-
-    # Load configuration
-    df = input_validation(args.input)
-    config_file = args.config
-    config = load_config(config_file)
-    target_fs = config["acoustic_indices"]["target_fs"]
-    n_jobs = config["acoustic_indices"]["n_jobs"]
-    group_by_site = config["acoustic_indices"]["group_by_site"]
-    select_sites = args.sites
-
-    # If file list provided filter dataframe
-    if select_sites is None:
-        n_sites = df.groupby('sensor_name').ngroups
-        site_list = df.sensor_name.unique()
-    else:
-        df = df[df['sensor_name'].isin(select_sites)]
-        n_sites = df.groupby('sensor_name').ngroups
-        site_list = df.sensor_name.unique()
-    print(f'Computing indices over {n_sites} sites: {site_list}')
-
-    # Format output per site or per batch
-    if group_by_site:  
-        for site, df_site in df.groupby('sensor_name'):
-            df_out = compute_indices(df_site, target_fs, n_jobs)
-            fname_save = os.path.join(args.output, f'{site}_indices.csv')
-            df_out.to_csv(fname_save, index=False)
-            print(f'{site} Done! Results are stored at {fname_save}')
-
-    else:
-        df_out = compute_indices(df, target_fs, n_jobs)
-        df_out.to_csv(args.output, index=False)
-        print(f'Done! Results are stored at {args.output}')
