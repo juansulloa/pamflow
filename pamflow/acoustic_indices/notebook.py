@@ -1,16 +1,5 @@
 """
-Compute acoustic indices on a list of files.
-
-The audio file is first resampled to 48 kHz.
-Acoustic indices computed include:
-    - Acoustic Diversity Index (ADI)
-    - Acoustic Complexity Index (ACI)
-    - Acoustic Space Used (ASU)
-    - Normalized Difference Soundscape Index (NDSI)
-    - Bioacoustic Index (BI)
-    - Acoustic Entropy Index (H)
-    - Number of peaks (NP)
-    - Spectral cover (SC)
+Postprocess acoustic indices
 
 """
 #%%
@@ -18,12 +7,12 @@ import pandas as pd
 import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
-
+import glob
 #%%
 def plot_acoustic_indices(df, alpha=0.5, size=3):
     # format data
-    df.loc[:,'date'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
-    df['time'] = df.date.str[11:13].astype(int)
+    df['date'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
+    df['time'] = df.date.dt.hour
     # plot
     fig, ax = plt.subplots(nrows=3, ncols=3, figsize=(10, 10))
     sns.scatterplot(df, x='time', y='ACI', alpha=alpha, size=size, ax=ax[0,0])
@@ -37,9 +26,26 @@ def plot_acoustic_indices(df, alpha=0.5, size=3):
     sns.scatterplot(df, x='time', y='SC', alpha=alpha, size=size, ax=ax[2,2])
     fig.set_tight_layout('tight')
 
+def summary_stats(df_indices):
+    """ Take mean per site, per day-period (day and night) """
+    df_indices['date'] = pd.to_datetime(df_indices['date'])
+
+    # Create a new column 'day_night' based on the time of day
+    df_indices['day_night'] = df_indices['date'].apply(lambda x: 'day' if 6 <= x.hour < 18 else 'night')
+
+    df_out = pd.concat([
+        df_indices[indices_names].median().rename(lambda x: f'{x}_med'),
+        df_indices[indices_names].std().rename(lambda x: f'{x}_std'),
+        df_indices.loc[df_indices.day_night=='day', 
+                    indices_names].median().rename(lambda x: f'{x}_day'),
+        df_indices.loc[df_indices.day_night=='night', 
+                    indices_names].median().rename(lambda x: f'{x}_nit')
+        ])
+    return df_out
+
 #%% Plot indices to check consistency
-df_indices = pd.read_csv('../../output/dataframes_ai/H26_indices.csv')
-df_metadata = pd.read_csv('../../output/metadata/metadata_clean_30T.csv')
+df_indices = pd.read_csv('../../../output/dataframes_ai/H26_indices.csv')
+df_metadata = pd.read_csv('../../../output/metadata/metadata_clean_30T.csv', dtype={'time': str})
 df_indices = df_indices.merge(df_metadata, on='fname')
 
 plot_acoustic_indices(df_indices, alpha=0.3, size=0.5)
@@ -47,21 +53,16 @@ plot_acoustic_indices(df_indices, alpha=0.3, size=0.5)
 
 #%% Compute summary statistics per site
 indices_names = ['ACI', 'ADI', 'BI', 'H', 'Hf', 'Ht', 'NDSI', 'NP', 'SC']
-df_metadata = pd.read_csv('../../output/metadata/metadata_clean_30T.csv')
+df_metadata = pd.read_csv('../../../output/metadata/metadata_clean_30T.csv')
+flist = glob.glob('../../../output/dataframes_ai/per_site/*_indices.csv')
 
+df_compiled = list()
+for fname in flist:
+    df_indices = pd.read_csv(fname)
+    df_indices = df_indices.merge(df_metadata, on='fname')
+    df_out = summary_stats(df_indices)
+    df_out.name = df_indices.sensor_name[0]
+    df_compiled.append(df_out)
 
-#%% Take mean per site, per day-period (day and night)
-df_indices['date'] = pd.to_datetime(df_indices['date'])
-
-# Create a new column 'day_night' based on the time of day
-df_indices['day_night'] = df_indices['date'].apply(lambda x: 'day' if 6 <= x.hour < 18 else 'night')
-
-df_out = pd.concat([
-    df_indices[indices_names].median().rename(lambda x: f'{x}_med'),
-    df_indices[indices_names].std().rename(lambda x: f'{x}_std'),
-    df_indices.loc[df_indices.day_night=='day', 
-                   indices_names].median().rename(lambda x: f'{x}_day'),
-    df_indices.loc[df_indices.day_night=='night', 
-                   indices_names].median().rename(lambda x: f'{x}_nit')
-    ])
-df_out.name = 'H26'
+df_compiled = pd.concat(df_compiled, axis=1).T
+df_compiled.to_csv('../../../output/dataframes_ai/all_sites_summary_indices.csv')

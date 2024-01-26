@@ -23,12 +23,12 @@ from prep_utils import (add_file_prefix,
 with open('../config.yaml', 'r') as f:
     config = yaml.safe_load(f)
 
-path_audio = os.path.realpath(config['input_data']['path_audio'])
-path_save_metadata_full = config['preprocessing']['path_save_metadata_full']
-path_save_metadata_sample = config['preprocessing']['path_save_metadata_sample']
+path_audio = os.path.realpath('../../audio/')
+path_save_metadata_full = '../../output/metadata/metadata_full.csv'
+path_save_metadata_sample = '../../output/metadata/metadata_sample.csv'
+path_save_timelapse = '../../output/timelapse/'
 sample_len =  config['preprocessing']['sample_len']
 date_range = config['preprocessing']['date_range']
-path_save_timelapse = config['preprocessing']['path_save_timelapse']
 sample_period = config['preprocessing']['sample_period']
 
 #%% 1. Add file prefix according to file names

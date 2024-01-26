@@ -104,6 +104,39 @@ The directory structure of this project is as follows:
 - `README.md`: Adjust this file providing an overview of the project.
 - `requirements.txt`: file listing all Python packages required to run the notebooks.
 
+## Pamflow Cheat Sheet
+
+### Preprocessing
+
+#### Add file prefix
+```bash
+python -m pamflow.preprocess.cli add_file_prefix -i <input_dir> -r
+```
+#### Get metadata
+```bash
+python -m pamflow.preprocess.cli get_audio_metadata -i <input_dir> -o <output_file>
+```
+#### Plot sensor deployment
+```bash
+python -m pamflow.plot.cli sensor_deployment -i ../output/metadata/metadata_extra.csv
+```
+#### Timelapse
+```bash
+python -m pamflow.preprocess.cli audio_timelapse -i <input_dir> -o <output_dir> -c config.yaml
+```
+#### Plot spectrograms for multiple files
+```bash
+python -m pamflow.plot.cli spectrogram -i <input_dir>
+```
+### Acoustic indices
+```bash
+python -m pamflow.acoustic_indices.cli -i <input_dir> -o <output_dir> -c config.yaml
+```
+### Graphical soundscapes
+```bash
+python -m pamflow.graphical_soundscape.cli -i <input_dir> -o <output_dir> -c config.yaml
+```
+
 ## Contribution Guidelines
 
 This project was developed with the intention of being openly available for anyone to use and improve it. If you wish to contribute to this project, please follow these steps:

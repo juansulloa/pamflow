@@ -33,7 +33,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", "-o", type=str,
                     help="Path and filename to save results. "
                          "Results will be saved to a file with the specified name at the specified location.")
-    parser.add_argument("--config", "-c", type=str,
+    parser.add_argument("--config", "-c", type=str, default='config.yaml',
                     help="Path to config file. "
                          "The config file should contain all additional settings for your script.")
     parser.add_argument("--display", "-d", action="store_true", 

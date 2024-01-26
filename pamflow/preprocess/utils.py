@@ -166,6 +166,25 @@ def find_wav_files(folder_path, recursive=False):
     return wav_files
 
 #%%
+def find_files(folder_path, endswith='*', recursive=False):
+    """ Search for files with any extension """
+    files = []
+    if recursive:
+        for root, _, files in os.walk(folder_path):
+            for file in files:
+                if file.lower().endswith(endswith):
+                    files.append(os.path.join(root, file))
+    else:
+        for file in os.listdir(folder_path):
+                    if file.lower().endswith(endswith):
+                        files.append(os.path.join(folder_path, file))
+    
+    # Transform the list of strings to a list of Path objects
+    files = [Path(path) for path in files]
+    
+    return files
+
+#%%
 def add_file_prefix(folder_name: str, recursive:bool=False, verbose:bool=False) -> None:
     """
     Adds a prefix to the file names in the given directory.
@@ -291,6 +310,7 @@ def metadata_summary(df):
     df = input_validation(df)
         
     df['date'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
+    df.dropna(inplace=True)
     df_summary = {}
     for site, df_site in df.groupby('sensor_name'):
         site_summary = {
@@ -350,12 +370,12 @@ def concat_audio(flist, sample_len=1, verbose=False, display=False):
     return long_wav, fs
 
 def audio_timelapse(
-        data, sample_len, sample_period='30T', date_range=None, path_save=None, save_audio=True, save_spectrogram=True, verbose=True)  -> None:
+        data, sample_len, sample_period='30T', date_range=None, path_save=None, save_audio=True, verbose=True)  -> None:
     """ Build audio timelapse """
     
     # Function argument validation
     df = input_validation(data)
-    date_range = [date_validation(date_range[0]), date_range[1]]
+    date_range = [date_validation(date_range[0]), date_validation(date_range[1])]
 
     # select files to create timelapse
     df.date = pd.to_datetime(df.date)
@@ -377,5 +397,28 @@ def audio_timelapse(
         if save_audio:
             sound.write(f'{path_save}{site}_timelapse.wav', fs, long_wav, bit_depth=16)
         
-        if save_spectrogram:
-            print('Saving spectrogram... TODO')
+#%%
+def plot_spectrogram(fname, nperseg=1024, noverlap=0.5, db_range=80, width=10, height=4):
+    s, fs = sound.load(fname)
+    Sxx, tn, fn, ext = sound.spectrogram(
+        s, fs, nperseg=nperseg, noverlap=nperseg*noverlap)
+    util.plot_spectrogram(Sxx, ext, db_range, figsize=(height,width), colorbar=False)
+
+#%%
+def select_metadata(input_path, sensor_name=None, date_range=None):
+    df = input_validation(input_path)
+    
+    if sensor_name is None and date_range is None:
+        return df    
+    
+    else: 
+        if sensor_name is not None:
+            idx_keep = df.sensor_name.isin(sensor_name)
+        
+        if date_range is not None:
+            date_range = [date_validation(date_range[0]), date_validation(date_range[1])]
+            df.date = pd.to_datetime(df.date)
+            idx_dates = df.date.between(date_range[0], date_range[1], inclusive='left')
+            idx_keep = (idx_keep & idx_dates)
+        
+        return df.loc[idx_keep,:]

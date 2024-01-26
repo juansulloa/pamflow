@@ -1,23 +1,14 @@
-# Location of input data
-input_data:
-  path_audio: '../../audio/'
-
-# Configuration parameters related to the preprocessing workflow
+# Basic settings
 preprocessing:
-  path_save_metadata_full: '../../output/metadata/metadata_full.csv'
-  path_save_metadata_sample: '../../output/metadata/metadata_sample.csv'
-  sample_len: 5  # length of sample to build long soundscapes
+  sample_length: 5  # length of sample to build timelapse
   sample_period: '30T'
   date_range: ['2023-05-01', '2023-05-02']
-  path_save_timelapse: '../../output/figures/'
 
-# Configuration parameters related to the acoustic indices workflow
 acoustic_indices:
   target_fs: 48000  # sampling rate for analysis
   group_by_site: True
   n_jobs: -1
 
-# Configuration parameters related to the graphical soundscapes workflow
 graph_soundscapes:
   target_fs: 48000  # target sampling frequency
   nperseg: 256  # window size to compute the spectrogram
@@ -27,3 +18,11 @@ graph_soundscapes:
   threshold_abs: -55  # threshold for detecting peaks
   group_by_site: True
   n_jobs: -1
+
+plot:
+  nperseg: 1024
+  noverlap: 512
+  fig_height: 4
+  fig_width: 10
+  db_range: 80
+  colormap: 'grey'  # 'grey', 'viridis', 'plasma', 'inferno', 'cvidis'
