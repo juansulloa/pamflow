@@ -61,7 +61,7 @@ python -m pamflow.plot.cli sensor_deployment -i ../output/metadata/metadata_extr
 ```
 **Timelapse**
 ```bash
-python -m pamflow.preprocess.cli audio_timelapse -i <input_dir> -o <output_dir> -c config.yaml
+python -m pamflow.preprocess.cli audio_timelapse -i <input_dir> -o <output_dir>
 ```
 **Plot spectrograms for multiple files**
 ```bash
@@ -70,17 +70,16 @@ python -m pamflow.plot.cli spectrogram -i <input_dir>
 
 #### 3.2. Compute acoustic indices
 ```bash
-python -m pamflow.acoustic_indices.cli -i <input_dir> -o <output_dir> -c config.yaml
+python -m pamflow.acoustic_indices.cli -i <input_dir> -o <output_dir>
 ```
 #### 3.3. Compute graphical soundscapes
 Test configuration
 ```bash
-python -m pamflow.graphical_soundscape.cli spectrogram_local_max -i <input_file> -c config.yaml
+python -m pamflow.graphical_soundscape.cli spectrogram_local_max -i <input_file>
 ```
 Run for all files
 ```bash
-python -m pamflow.graphical_soundscape.cli spectrogram_local_max -i <input_file> -c config.yaml
-python -m pamflow.graphical_soundscape.cli graphical_soundscape -i <input_dir> -o <output_dir> -c config.yaml
+python -m pamflow.graphical_soundscape.cli graphical_soundscape -i <input_dir> -o <output_dir>
 ```
 
 ### 4. Visualize and perform statistical analiyses
