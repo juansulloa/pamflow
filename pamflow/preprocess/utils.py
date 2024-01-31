@@ -93,6 +93,7 @@ def plot_sensor_deployment(df, x='sensor_name', y='date', ax=None):
     ax.grid(alpha=0.2)
     ax.set_title(
         f'Sensor Deployment: {df.sensor_name.unique().shape[0]} sites | {df.shape[0]} files')
+    plt.xticks(rotation=45)
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
     plt.tight_layout()
     plt.show()

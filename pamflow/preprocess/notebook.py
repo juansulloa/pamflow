@@ -12,22 +12,23 @@ import os
 import yaml
 from maad import util
 import pandas as pd
-from prep_utils import (add_file_prefix,
-                        metadata_summary,
-                        plot_sensor_deployment,
-                        random_sample_metadata,
-                        audio_timelapse)
+from utils import (
+    add_file_prefix,
+    metadata_summary,
+    plot_sensor_deployment,
+    random_sample_metadata,
+    audio_timelapse)
 
 #%% Load configuration files
 # Open the config file and load its contents into a dictionary
-with open('../config.yaml', 'r') as f:
+with open('../../config.yaml', 'r') as f:
     config = yaml.safe_load(f)
 
 path_audio = os.path.realpath('../../audio/')
 path_save_metadata_full = '../../output/metadata/metadata_full.csv'
 path_save_metadata_sample = '../../output/metadata/metadata_sample.csv'
 path_save_timelapse = '../../output/timelapse/'
-sample_len =  config['preprocessing']['sample_len']
+sample_len =  config['preprocessing']['sample_length']
 date_range = config['preprocessing']['date_range']
 sample_period = config['preprocessing']['sample_period']
 
