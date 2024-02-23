@@ -1,7 +1,11 @@
-from pamflow.classification.utils import match_files, read_annot_files, build_annotated_audio_track
+from pamflow.classification.utils import (match_files, 
+                                          merge_annot_files, 
+                                          build_annotated_audio_track)
+from pamflow.preprocess.utils import find_files
+import os
 
 #%% VARIABLES
-path_annot = '/Users/jsulloa/Downloads/annot/'
+path_annot = '../'
 path_audio = '/Users/jsulloa/Downloads/audio/'
 n_segments = 10 # number of segments per category
 labels = ['blcjay1']  # list, labels that are neeeded to annotate
@@ -17,8 +21,9 @@ path_save = '/Users/jsulloa/Downloads/output/'
 
 #%% Main
 # load data
-matched_files = match_files(path_annot, path_audio)
-df_annot = merge_mannot_files(matched_files.fpath_annot.to_list(), verbose=False)
+#matched_files = match_files(path_annot, path_audio)
+
+df_annot = merge_annot_files(matched_files.fpath_annot.to_list(), verbose=False)
 
 # filter dataframe
 df_annot = df_annot.loc[

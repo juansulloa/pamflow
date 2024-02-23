@@ -3,18 +3,16 @@
 """
 Utilitary files to help in the detection of soundmarks
 """
-import glob
 import pandas as pd
 import numpy as np
 import os
-import warnings
 from maad import sound, util
 
 #%% Custom functions
 
 # Load annotations
 def merge_annot_files(flist, rtype='csv'):
-    """Batch load manual annotations.
+    """Batch load manual annotations or automated detections from files
 
     Args:
         file_list (str or list): Path to annotation files or a list of file paths.
@@ -33,10 +31,8 @@ def merge_annot_files(flist, rtype='csv'):
     
     return df_annot
 
-def match_files(path_annot, path_audio):
+def match_files(flist_annot, flist_audio):
     """ Match annotations and audio files """
-    flist_annot = glob.glob(path_annot+'*.txt')
-    flist_audio = glob.glob(path_audio+'*.[wW][aA][vV]')
 
     # Get basename for annotation file
     flist_annot_base = [os.path.basename(file) for file in flist_annot]
@@ -44,7 +40,7 @@ def match_files(path_annot, path_audio):
     flist_audio_base = [os.path.basename(file) for file in flist_audio]
     flist_audio_base = [file.split('.')[0] for file in flist_audio_base]
 
-    # Create a annotation DataFrame
+    # Create annotation DataFrame
     df_annot = pd.DataFrame({'fpath_annot': flist_annot,
                             'basename': flist_annot_base})
 

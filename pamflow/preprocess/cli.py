@@ -25,7 +25,6 @@ if __name__ == "__main__":
         choices=["get_audio_metadata", 
                  "metadata_summary",
                  "select_metadata",
-                 "plot_sensor_deployment",
                  "audio_timelapse",
                  "add_file_prefix"], 
         help="Preprocessing operation")

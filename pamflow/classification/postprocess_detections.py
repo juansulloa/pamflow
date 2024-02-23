@@ -19,6 +19,10 @@ pivot_table = pd.pivot_table(
 pivot_table.to_csv('../../../output/birdnet/birdnet_species_matrix_minconf0.8.csv')
 
 # Format the table per site
-pivot_table['site'] = pivot_table.index.str.split('_').str[0].values
-pivot_table_site = pivot_table.groupby('site').sum()
-pivot_table_site.to_csv('../../../output/birdnet/birdnet_site-species_matrix_minconf0.8.csv')
+t1_plot_id = pd.read_csv('../../../input/t1_plot_id.csv')
+
+pivot_table['sensor_name'] = pivot_table.index.str.split('_').str[0].values
+pivot_table_site = pivot_table.groupby('sensor_name').sum()
+pivot_table_site = t1_plot_id.merge(pivot_table_site, on='sensor_name')
+
+pivot_table_site.to_csv('../../../output/birdnet/birdnet_site-species_matrix_minconf0.8.csv', index=False)

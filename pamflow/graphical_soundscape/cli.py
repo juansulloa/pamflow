@@ -9,6 +9,7 @@ References:
 """
 import os
 import argparse
+import pandas as pd
 import matplotlib.pyplot as plt
 from maad import sound, util
 from maad.rois import spectrogram_local_max
@@ -67,6 +68,8 @@ if __name__ == "__main__":
 
     elif args.operation == "graphical_soundscape":
         df = input_validation(args.input)
+        df['date'] = pd.to_datetime(df.date)
+        df['time'] = df.date.dt.hour
         
         # If file list provided filter dataframe
         if select_sites is None:
