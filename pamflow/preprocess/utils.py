@@ -147,6 +147,38 @@ def listdir_pattern(path_dir, ends_with=None):
             new_list.append(names)
     return new_list
 
+def build_folder_structure(root_dir):
+    # Define the subdirectories
+    subdirs = [
+        "input",
+        "input/sensor_deployment",
+        "input/mannot",
+        "output",
+        "output/figures",
+        "output/metadata",
+        "output/graphical_soundscapes",
+        "output/acoustic_indices",
+        "output/birdnet"
+    ]
+
+    # Create the root directory if it doesn't exist
+    if not os.path.exists(root_dir):
+        os.makedirs(root_dir)
+
+    # Create subdirectories
+    for subdir in subdirs:
+        subdir_path = os.path.join(root_dir, subdir)
+        if not os.path.exists(subdir_path):
+            os.makedirs(subdir_path)
+
+    # Create README.md file
+    readme_path = os.path.join(root_dir, "README.md")
+    if not os.path.exists(readme_path):
+        with open(readme_path, "w") as readme_file:
+            readme_file.write("")
+
+    print("Folder structure created successfully.")
+
 #%%
 def find_wav_files(folder_path, recursive=False):
     """ Search for files with wav or WAV extension """

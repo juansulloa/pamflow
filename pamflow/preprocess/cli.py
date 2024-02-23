@@ -14,6 +14,7 @@ from pamflow.preprocess.utils import (
     add_file_prefix, 
     select_metadata,
     audio_timelapse,
+    build_folder_structure,
     )
 
 
@@ -22,11 +23,14 @@ if __name__ == "__main__":
         description="Perform preprocessing operations on audio data.")
     parser.add_argument(
         "operation", 
-        choices=["get_audio_metadata", 
-                 "metadata_summary",
-                 "select_metadata",
-                 "audio_timelapse",
-                 "add_file_prefix"], 
+        choices=[
+            "build_folder_structure",
+            "add_file_prefix",
+            "get_audio_metadata", 
+            "metadata_summary",
+            "select_metadata",
+            "audio_timelapse",
+            ], 
         help="Preprocessing operation")
     
     parser.add_argument("--input", "-i", 
@@ -48,6 +52,9 @@ if __name__ == "__main__":
         df.dropna(inplace=True)  # remove problematic files
         df.to_csv(args.output, index=False)
     
+    elif args.operation == "build_folder_structure":
+        build_folder_structure(args.input)
+
     elif args.operation == "add_file_prefix":
         _ = add_file_prefix(args.input, args.recursive, verbose)
     
