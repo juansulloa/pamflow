@@ -87,14 +87,14 @@ def plot_sensor_deployment(df, x='sensor_name', y='date', ax=None):
         _, ax = plt.subplots(figsize=[8,5])
         
     sns.scatterplot(y=y, x=x, 
-                    size='count', size_norm = (10, 200), 
-                    hue='count', hue_norm = (10, 200),
+                    size='count', 
+                    hue='count', 
                     data=df_out, ax=ax)
     ax.grid(alpha=0.2)
     ax.set_title(
         f'Sensor Deployment: {df.sensor_name.unique().shape[0]} sites | {df.shape[0]} files')
     plt.xticks(rotation=45)
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0, title='N. Rec')
     plt.tight_layout()
     plt.show()
 

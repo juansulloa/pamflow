@@ -67,7 +67,7 @@ if __name__ == "__main__":
     
     elif args.operation == "metadata_summary":
         df = metadata_summary(args.input)
-        df.to_csv(args.output)
+        df.to_csv(args.output, index=False)
     
     elif args.operation == "select_metadata":
         df = select_metadata(args.input)
