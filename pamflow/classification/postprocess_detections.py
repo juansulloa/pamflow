@@ -3,11 +3,11 @@ import glob
 from utils import merge_annot_files
 
 # Load data a format it as an abundance matrix with files rows
-path_annot = '../../../output/birdnet/detection/'
+path_annot = '../../../output/birdnet/detections/'
 
 flist = glob.glob(f"{path_annot}/**/*.csv", recursive=True)
 df = merge_annot_files(flist, rtype='csv')
-df['Confidence'] = (df['Confidence'] > 0.8).astype(int)
+df['Confidence'] = (df['Confidence'] >= 0.8).astype(int)
 df_clean = df.loc[df.Confidence==1]
 
 # Pivot table to get the desired structure

@@ -7,8 +7,10 @@ Utilitary functions to manage, check and preprocess large sampling data assiciat
 import os
 import argparse
 import matplotlib.pyplot as plt
+import pandas as pd
 from maad import sound, util
 from pamflow.preprocess.utils import find_files, plot_sensor_deployment
+from maad.features import plot_graph
 import yaml
 
 def load_config(file_path):
@@ -45,6 +47,7 @@ if __name__ == "__main__":
         choices=[
             "spectrogram",
             "sensor_deployment",
+            "plot_graph",
         ],
         help="Plot operation")
     
@@ -69,3 +72,18 @@ if __name__ == "__main__":
     
     elif args.operation == "sensor_deployment":
         _ = plot_sensor_deployment(args.input)
+
+    elif args.operation == "plot_graph":
+        if os.path.isdir(args.input):
+            flist = find_files(args.input, endswith='.csv')
+        else:
+            flist = [args.input]
+        
+        for fname in flist:
+            graph = pd.read_csv(fname, index_col=0)
+            fig, ax = plt.subplots()
+            plot_graph(graph)
+            fname_save = str(fname)[:-4] + '.png'
+            plt.savefig(fname_save)
+            plt.close(fig)
+            
