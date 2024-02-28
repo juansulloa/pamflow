@@ -15,7 +15,7 @@ This repository provides a template for analyzing soundscapes using python. The 
 
 Soundscapes are composed of all sounds occurring in a given habitat, including biological sounds such as animal vocalizations and non-biological sounds like wind and water. Analyzing soundscapes can provide valuable information about species richness, habitat quality, and ecological changes over time. 
 
-The Python programming language has become key for analyzing soundscapes since it is an open-source language and provides numerous scientific libraries for manipulating sound data. This project provides a template for organizing sound data analysis code and provides an example of how to analyze sound recordings in the .wav format.
+The Python programming language has become key for analyzing soundscapes since it is an open-source language and provides numerous scientific libraries for manipulating sound data. This project provides a template for organizing sound data analysis code and provides an example of how to analyze sound recordings in `.wav` format.
 
 ## Installation Instructions
 
@@ -34,14 +34,13 @@ pip install -r requirements.txt
 ## Getting Started
 
 ### 1. Organize directories
-Organize files accorind to [this structure](#directory-structure).
-    - Sound files must be organized into subdirectories based on the recording device.
-    - Rename the directory where you have this repository as 'workflows'.
-    - Create the output directories and its subdirectories 'figures' and 'metadata' and others.
+Create a folder project where custom scripts and data will be saved.
+```bash
+python -m pamflow.preprocess.cli build_folder_structure -i <project_folder>
+```
 
 ### 2. Set configuration
-Edit the `config.yaml` file in the root directory to adjust the settings according to your analysis needs.
-The file is prefilled with default parameters.
+Edit the `config.yaml` file in the root directory to adjust the settings according to your analysis needs. The file is prefilled with default parameters.
 
 ### 3. Run scripts
 Run the scripts to prepare the data and extract audio features. 
@@ -53,15 +52,17 @@ python -m pamflow.preprocess.cli add_file_prefix -i <input_dir> -r
 ```
 **Get metadata**
 ```bash
-python -m pamflow.preprocess.cli get_audio_metadata -i <input_dir> -o <output_file>
+python -m pamflow.preprocess.cli get_audio_metadata -i <input_dir> -o <output_metadata_csv>
 ```
-**Plot sensor deployment**
+**Plot sensor deployment and summary overview**
 ```bash
-python -m pamflow.plot.cli sensor_deployment -i ../output/metadata/metadata_extra.csv
+python -m pamflow.plot.cli sensor_deployment -i <input_metadata_csv>
+python -m pamflow.preprocess.cli metadata_summary -i <input_metadata_csv> -o <output_metadata_csv>
 ```
 **Timelapse**
 ```bash
-python -m pamflow.preprocess.cli audio_timelapse -i <input_dir> -o <output_dir>
+python -m pamflow.preprocess.cli audio_timelapse -i <input_dir> -o <output_dir> -c config.yaml
+python -m pamflow.plot.cli spectrogram -i <input_dir>   # plot spectrogram of audio timelapse
 ```
 **Plot spectrograms for multiple files**
 ```bash
@@ -81,8 +82,18 @@ Run for all files
 ```bash
 python -m pamflow.graphical_soundscape.cli graphical_soundscape -i <input_dir> -o <output_dir>
 ```
+#### 3.4. Compute BirdNet detections (optional)
+To have additional information about bird communities, we recommend to use an external repository, namely [BirdNET-Analyzer](https://github.com/kahst/BirdNET-Analyzer). To do so, you will need to install BirdNet Dependencies and run the following scripts as per indicated in the repository. Here we provide some scripts that can be used. These will need to be adapted to your project needs.
 
-### 4. Visualize and perform statistical analiyses
+```bash
+python analyze.py --i <input_dir>  --o <output_dir> --lat <latitude_decimal> --lon <longitude_decimal> --threads 8 --rtype csv
+```
+
+```bash
+python segments.py --audio <audio_folder> --results <detection_folder> --o <output_folder> --min_conf 0.8 --max_segments 10 --seg_length 5.0
+```
+
+### 4. Visualize and perform statistical analyses
 Since the statistical analyses are project-dependent, specific visualization tools should be chosen to aid in the process.
 
 ## Directory Structure
@@ -90,17 +101,10 @@ Since the statistical analyses are project-dependent, specific visualization too
 The directory structure of projects is as follows:
 
 ```
-├── data
-│   ├── SITE001
-│   │   ├── recording1.wav
-│   │   └── recording2.wav
-│   ├── SITE002
-│   │   └── recording3.wav
-│   └── SITE003
-│       └── recording4.wav
-├── workflows
+project_folder
+├── pamflow
 │   ├── config.yaml
-│   ├── preprocessing
+│   ├── preprocess
 │   ├── acoustic_indices
 │   └── graphical_soundscapes
 ├── input
@@ -116,7 +120,6 @@ The directory structure of projects is as follows:
 ```
 
 - `config.yaml`: configuration file for specifying input/output directories, settings, and parameters.
-- `data/`: directory containing sound files organized into subdirectories based on location or device. I usually have this data in a harddrive and I make a symbolik link using `ln -s <source_dir> <target_dir>`.
 - `pamflow/`: directory containing scripts for loading data, feature extraction, data visualization, and statistical analysis.
 - `input/`: directory containing input files comming from field data and manual annotations.
 - `output/`: directory containing output files generated by the workflows.
