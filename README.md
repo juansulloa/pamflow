@@ -64,10 +64,6 @@ python -m pamflow.preprocess.cli metadata_summary -i <input_metadata_csv> -o <ou
 python -m pamflow.preprocess.cli audio_timelapse -i <input_dir> -o <output_dir> -c config.yaml
 python -m pamflow.plot.cli spectrogram -i <input_dir>   # plot spectrogram of audio timelapse
 ```
-**Plot spectrograms for multiple files**
-```bash
-python -m pamflow.plot.cli spectrogram -i <input_dir>
-```
 
 #### 3.2. Compute acoustic indices
 ```bash
