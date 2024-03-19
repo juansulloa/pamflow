@@ -158,6 +158,7 @@ def build_folder_structure(root_dir):
         "output/metadata",
         "output/graphical_soundscapes",
         "output/acoustic_indices",
+        "output/timelapse",
         "output/birdnet"
     ]
 
