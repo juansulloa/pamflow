@@ -29,6 +29,9 @@ if __name__ == '__main__':
     target_fs = config["acoustic_indices"]["target_fs"]
     n_jobs = config["acoustic_indices"]["n_jobs"]
     group_by_site = config["acoustic_indices"]["group_by_site"]
+    filter_type = config["acoustic_indices"]["filter_type"]
+    filter_cut = config["acoustic_indices"]["filter_cut"]
+    filter_order = config["acoustic_indices"]["filter_order"]
     select_sites = args.sites
 
     # If file list provided filter dataframe
@@ -44,12 +47,14 @@ if __name__ == '__main__':
     # Format output per site or per batch
     if group_by_site:  
         for site, df_site in df.groupby('sensor_name'):
-            df_out = compute_indices(df_site, target_fs, n_jobs)
+            df_out = compute_indices(
+                df_site, target_fs, filter_type, filter_cut, filter_order, n_jobs)
             fname_save = os.path.join(args.output, f'{site}_indices.csv')
             df_out.to_csv(fname_save, index=False)
             print(f'{site} Done! Results are stored at {fname_save}')
 
     else:
-        df_out = compute_indices(df, target_fs, n_jobs)
+        df_out = compute_indices(
+            df, target_fs, filter_type, filter_cut, filter_order, n_jobs)
         df_out.to_csv(args.output, index=False)
         print(f'Done! Results are stored at {args.output}')

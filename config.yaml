@@ -2,10 +2,13 @@
 preprocessing:
   sample_length: 5  # length of sample to build timelapse
   sample_period: '30T'
-  date_range: ['2023-05-01', '2023-05-02']
+  date_range: ['2024-02-10', '2024-02-11']
 
 acoustic_indices:
   target_fs: 48000  # sampling rate for analysis
+  filter_type: 'highpass'
+  filter_cut: 1500
+  filter_order: 3
   group_by_site: True
   n_jobs: -1
 

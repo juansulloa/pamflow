@@ -63,13 +63,18 @@ def compute_acoustic_indices(s, Sxx, tn, fn):
     return df_indices
 
 #%%
-def compute_acoustic_indices_single_file(path_audio, target_fs=48000, verbose=True):
+def compute_acoustic_indices_single_file(
+        path_audio, target_fs=48000, filter_type=None, filter_cut=None, filter_order=None,
+        verbose=True):
+    
     if verbose:
         print(f'Processing file {path_audio}', end='\r')
 
     # load audio
-    s, fs = sound.load(path_audio)    
+    s, fs = sound.load(path_audio)
     s = sound.resample(s, fs, target_fs, res_type='scipy_poly')
+    if filter_type is not None:
+        s = sound.select_bandwidth(s, fs, ftype=filter_type, fcut=filter_cut, forder=filter_order)
 
     # Compute the amplitude spectrogram and acoustic indices
     Sxx, tn, fn, _ = sound.spectrogram(
@@ -104,7 +109,7 @@ def batch_compute_acoustic_indices(data, path_save=None):
         df_indices.to_csv(path_save+sensor_name+'_indices.csv', index=False)
 
 #%% Parellel computing
-def compute_indices_parallel(data, target_fs=48000, n_jobs=4):
+def compute_indices_parallel(data, target_fs, filter_type, filter_cut, filter_order, n_jobs=4):
     df = input_validation(data)
     if n_jobs == -1:
         n_jobs = os.cpu_count()
@@ -116,7 +121,7 @@ def compute_indices_parallel(data, target_fs=48000, n_jobs=4):
     with concurrent.futures.ProcessPoolExecutor(max_workers=n_jobs) as executor:
         
         # Use submit for each task
-        futures = {executor.submit(compute_acoustic_indices_single_file, file, target_fs): file for file in files}
+        futures = {executor.submit(compute_acoustic_indices_single_file, file, target_fs, filter_type, filter_cut, filter_order): file for file in files}
 
         # Get results when tasks are completed
         results = []
@@ -135,14 +140,15 @@ def compute_indices_parallel(data, target_fs=48000, n_jobs=4):
     return df_out
 
 #%% Sequential computing
-def compute_indices_sequential(data, target_fs):
+def compute_indices_sequential(data, target_fs, filter_type, filter_cut, filter_order):
     df = input_validation(data)
     print(f'Computing acoustic indices for {df.shape[0]} files')
     
     files = df.path_audio.to_list()
     results = []
     for i, file_path in enumerate(files, start=1):
-        result = compute_acoustic_indices_single_file(file_path, target_fs)
+        result = compute_acoustic_indices_single_file(
+            file_path, target_fs, filter_type, filter_cut, filter_order)
         result['fname'] = os.path.basename(file_path)
         results.append(result)
     
@@ -150,9 +156,10 @@ def compute_indices_sequential(data, target_fs):
     df_out = pd.DataFrame(results)
     return df_out
 
-def compute_indices(data, target_fs, n_jobs):
+def compute_indices(data, target_fs, filter_type, filter_cut, filter_order, n_jobs):
     if n_jobs == 1:
-        df_out = compute_indices_sequential(data, target_fs)
+        df_out = compute_indices_sequential(data, target_fs, filter_type, filter_cut, filter_order)
     else:
-        df_out = compute_indices_parallel(data, target_fs, n_jobs)
+        df_out = compute_indices_parallel(
+            data, target_fs, filter_type, filter_cut, filter_order, n_jobs)
     return df_out
