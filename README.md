@@ -78,6 +78,10 @@ Run for all files
 ```bash
 python -m pamflow.graphical_soundscape.cli graphical_soundscape -i <input_dir> -o <output_dir>
 ```
+Plot results
+```bash
+python -m pamflow.graphical_soundscape.cli plot_graph -i <input_dir>
+```
 #### 3.4. Compute BirdNet detections (optional)
 To have additional information about bird communities, we recommend to use an external repository, namely [BirdNET-Analyzer](https://github.com/kahst/BirdNET-Analyzer). To do so, you will need to install BirdNet Dependencies and run the following scripts as per indicated in the repository. Here we provide some scripts that can be used. These will need to be adapted to your project needs.
 

@@ -10,6 +10,7 @@ References:
 import os
 import argparse
 import pandas as pd
+import glob
 import matplotlib.pyplot as plt
 from maad import sound, util
 from maad.rois import spectrogram_local_max
@@ -97,9 +98,24 @@ if __name__ == "__main__":
                 df, threshold_abs, 'path_audio', 'time', target_fs, nperseg, 
                 noverlap, db_range, min_distance, n_jobs)
             df_out.to_csv(args.output, index=False)
-            print(f'Done! Results are stored at {args.output}')
+            print(f'Done! Results are saved at {args.output}')
         
         # Display result
         if args.display:
             plot_graph(df_out)
             plt.show()
+    
+    elif args.operation == "plot_graph":
+        print('Displaying plots from precomputed graphical soundscapes')
+
+        if args.output is None:
+            args.output = args.input
+        
+        flist = glob.glob(os.path.join(args.input,'*.csv'))
+        for file in flist:
+            file_basename = os.path.basename(file)
+            fname_save = os.path.join(args.output, file_basename.replace('.csv', '.png'))
+            graph = pd.read_csv(file, index_col=0)
+            plot_graph(graph, savefig=True, fname=fname_save)
+
+        print(f'Done! Results are saved at {args.output}')
