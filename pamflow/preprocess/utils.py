@@ -429,7 +429,8 @@ def audio_timelapse(
                                     sample_len=sample_len, 
                                     verbose=verbose)
         if save_audio:
-            sound.write(f'{path_save}{site}_timelapse.wav', fs, long_wav, bit_depth=16)
+            sound.write(os.path.join(path_save, f'{site}_timelapse.wav'), 
+                        fs, long_wav, bit_depth=16)
         
 #%%
 def plot_spectrogram(fname, nperseg=1024, noverlap=0.5, db_range=80, width=10, height=4):

@@ -117,5 +117,6 @@ if __name__ == "__main__":
             fname_save = os.path.join(args.output, file_basename.replace('.csv', '.png'))
             graph = pd.read_csv(file, index_col=0)
             plot_graph(graph, savefig=True, fname=fname_save)
+            plt.close()
 
         print(f'Done! Results are saved at {args.output}')
