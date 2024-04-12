@@ -17,20 +17,24 @@ Soundscapes are composed of all sounds occurring in a given habitat, including b
 
 The Python programming language has become key for analyzing soundscapes since it is an open-source language and provides numerous scientific libraries for manipulating sound data. This project provides a template for organizing sound data analysis code and provides an example of how to analyze sound recordings in `.wav` format.
 
-## Installation Instructions
+## Before you begin
 
-To get started with this project, you will need to clone this repository:
-
+1. Setup a working environment with python 3.10
 ```bash
-git clone https://github.com/juansulloa/pamflow.git
+conda create -n pamenv python=3.10
+conda activate pamenv
 ```
 
-Then, install the required packages by running:
-
+Then, install the required packages
 ```bash
 pip install -r requirements.txt
 ```
 
+2. Download or clone this repository:
+
+```bash
+git clone https://github.com/juansulloa/pamflow.git
+```
 ## Getting Started
 
 ### 1. Organize directories
