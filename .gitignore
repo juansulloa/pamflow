@@ -1,2 +1,8 @@
+# Exclude OSX and python files that are generated automatically
 *.DS_Store
 *.pyc
+
+# Exclude all config files except 'config.yaml'
+config_*.yaml
+config-*.yaml
+!config.yaml
