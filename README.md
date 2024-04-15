@@ -50,11 +50,11 @@ Run the scripts to prepare the data and extract audio features.
 #### 3.1. Preprocessing
 **Add file prefix**
 ```bash
-python -m pamflow.preprocess.cli add_file_prefix -i <input_dir> -r
+python -m pamflow.preprocess.cli add_file_prefix -i <input_audio_dir> -r
 ```
 **Get metadata**
 ```bash
-python -m pamflow.preprocess.cli get_audio_metadata -i <input_dir> -o <output_metadata_csv>
+python -m pamflow.preprocess.cli get_audio_metadata -i <input_audio_dir> -o <output_metadata_csv>
 ```
 **Plot sensor deployment and summary overview**
 ```bash
@@ -63,13 +63,13 @@ python -m pamflow.preprocess.cli metadata_summary -i <input_metadata_csv> -o <ou
 ```
 **Timelapse**
 ```bash
-python -m pamflow.preprocess.cli audio_timelapse -i <input_dir> -o <output_dir> -c config.yaml
+python -m pamflow.preprocess.cli audio_timelapse -i <input_metadata_csv> -o <output_dir> -c config.yaml
 python -m pamflow.plot.cli spectrogram -i <input_dir>   # plot spectrogram of audio timelapse
 ```
 
 #### 3.2. Compute acoustic indices
 ```bash
-python -m pamflow.acoustic_indices.cli -i <input_dir> -o <output_dir>
+python -m pamflow.acoustic_indices.cli -i <input_metadata_csv> -o <output_dir>
 ```
 #### 3.3. Compute graphical soundscapes
 Test configuration
@@ -78,7 +78,7 @@ python -m pamflow.graphical_soundscape.cli spectrogram_local_max -i <input_file>
 ```
 Run for all files
 ```bash
-python -m pamflow.graphical_soundscape.cli graphical_soundscape -i <input_dir> -o <output_dir>
+python -m pamflow.graphical_soundscape.cli graphical_soundscape -i <input_metadata_csv> -o <output_dir>
 ```
 Plot results
 ```bash
