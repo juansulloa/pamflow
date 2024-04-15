@@ -26,10 +26,12 @@ def plot_spectrogram(input, output, config):
     fig_height = config['plot']['fig_height']
     fig_width = config['plot']['fig_width']
     db_range = config['plot']['db_range']
+    flims = config['plot']['flims']
     cmap = config['plot']['colormap']
+
     # plot spectrogram
     s, fs = sound.load(input)
-    Sxx, _, _, ext = sound.spectrogram(s, fs, nperseg=nperseg, noverlap=noverlap)
+    Sxx, _, _, ext = sound.spectrogram(s, fs, nperseg=nperseg, noverlap=noverlap, flims=flims)
     ext[2], ext[3] = ext[2]/1000, ext[3]/1000
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
     util.plot_spectrogram(Sxx, ext, db_range=db_range, ax=ax, colorbar=False, cmap=cmap)
