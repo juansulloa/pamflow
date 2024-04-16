@@ -74,11 +74,11 @@ def compute_acoustic_indices_single_file(
     s, fs = sound.load(path_audio)
     s = sound.resample(s, fs, target_fs, res_type='scipy_poly')
     if filter_type is not None:
-        s = sound.select_bandwidth(s, fs, ftype=filter_type, fcut=filter_cut, forder=filter_order)
+        s = sound.select_bandwidth(s, target_fs, ftype=filter_type, fcut=filter_cut, forder=filter_order)
 
     # Compute the amplitude spectrogram and acoustic indices
     Sxx, tn, fn, _ = sound.spectrogram(
-        s, fs, nperseg = 1024, noverlap=0, mode='amplitude')
+        s, target_fs, nperseg = 1024, noverlap=0, mode='amplitude')
     df_indices_file = compute_acoustic_indices(s, Sxx, tn, fn)
     
     return df_indices_file
