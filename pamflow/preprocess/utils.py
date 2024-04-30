@@ -425,12 +425,13 @@ def audio_timelapse(
         print(site)
         df_site.sort_values('date', inplace=True)
         df_site = df_site.resample(sample_period).first()
+        df_site.dropna(inplace=True)
         long_wav, fs = concat_audio(df_site['path_audio'],
                                     sample_len=sample_len, 
                                     verbose=verbose)
         if save_audio:
-            sound.write(os.path.join(path_save, f'{site}_timelapse.wav'), 
-                        fs, long_wav, bit_depth=16)
+            sound.write(os.path.join(path_save, f'{site}_timelapse.wav'), fs, long_wav, bit_depth=16)
+        print('\n')
         
 #%%
 def plot_spectrogram(fname, nperseg=1024, noverlap=0.5, db_range=80, width=10, height=4):

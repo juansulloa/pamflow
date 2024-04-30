@@ -15,6 +15,7 @@ from pamflow.preprocess.utils import (
     select_metadata,
     audio_timelapse,
     build_folder_structure,
+    input_validation,
     )
 
 
@@ -43,9 +44,12 @@ if __name__ == "__main__":
                         action="store_true", help="Enable recursive mode")
     parser.add_argument("--quiet", "-q", 
                         action="store_true", help="Enable quiet mode")
+    parser.add_argument( "--sites", "-s", nargs="+", default=None,
+                    help="Specify sites to execute the operation (default: None)")
     args = parser.parse_args()
 
     verbose = 0 if args.quiet else 1
+    select_sites = args.sites
 
     if args.operation == "get_audio_metadata":
         df = util.get_metadata_dir(args.input, verbose)
@@ -62,8 +66,23 @@ if __name__ == "__main__":
         config = load_config(args.config)
         date_range = config['preprocessing']['date_range']
         sample_length = config['preprocessing']['sample_length']
+        
+        # Load metadata
+        df = input_validation(args.input)
+        
+        # If file list provided filter dataframe
+        if select_sites is None:
+            n_sites = df.groupby('sensor_name').ngroups
+            site_list = df.sensor_name.unique()
+        else:
+            df = df[df['sensor_name'].isin(select_sites)]
+            n_sites = df.groupby('sensor_name').ngroups
+            site_list = df.sensor_name.unique()
+        
+        print(f'Computing timelapse from {date_range[0]} to {date_range[1]} over {n_sites} site(s): {site_list}')
+
         audio_timelapse(
-            args.input, sample_length, sample_period='30T', date_range=date_range, path_save=args.output, save_audio=True, verbose=True)
+            df, sample_length, sample_period='30T', date_range=date_range, path_save=args.output, save_audio=True, verbose=True)
     
     elif args.operation == "metadata_summary":
         df = metadata_summary(args.input)
