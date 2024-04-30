@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 import glob
 from utils import merge_annot_files
 
@@ -9,7 +10,7 @@ path_save_spmatrix = '../../../output/birdnet/birdnet_species_matrix_minconf0.8.
 path_save_spmatrix_site = '../../../output/birdnet/birdnet_site-species_matrix_minconf0.8.csv'
 
 # Load data a format it as an abundance matrix with files rows
-flist = glob.glob(f"{path_annot}/**/*.csv", recursive=True)
+flist = glob.glob(os.path.join(path_annot,'**','*.csv'), recursive=True)
 df = merge_annot_files(flist, rtype='csv')
 df['Confidence'] = (df['Confidence'] >= min_conf).astype(int)
 df_clean = df.loc[df.Confidence==1]
