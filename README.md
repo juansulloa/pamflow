@@ -19,8 +19,14 @@ The Python programming language has become key for analyzing soundscapes since i
 
 ## Before you begin
 
-### 1. Setup a working environment 
-Setup a working environment with python 3.10 and install required packages.
+### 1. Download or clone this repository
+
+```bash
+git clone https://github.com/juansulloa/pamflow.git
+```
+
+### 2. Setup a working environment 
+Set up a working environment with Python 3.10 and install the required packages.
 
 ```bash
 conda create -n pamenv python=3.10
@@ -28,11 +34,6 @@ conda activate pamenv
 pip install -r requirements.txt
 ```
 
-### 2. Download or clone this repository
-
-```bash
-git clone https://github.com/juansulloa/pamflow.git
-```
 ## Getting Started
 
 ### 1. Organize directories
