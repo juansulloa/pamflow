@@ -74,27 +74,40 @@ def plot_sensor_deployment(df, x='sensor_name', y='date', ax=None):
     """
     # Function argument validation
     df = input_validation(df)
-
-    df['date'] = pd.to_datetime(df.date,  format='%Y-%m-%d %H:%M:%S')
-    df_out = pd.DataFrame()
-    for sensor_name, df_sensor in df.groupby('sensor_name'):
-        aux = pd.DataFrame(df_sensor.date.dt.date.value_counts())
-        aux['sensor_name'] = sensor_name
-        aux.reset_index(inplace=True)
-        df_out = pd.concat([df_out, aux], axis=0)
     
+    # Group recordings by day
+    df['date'] = pd.to_datetime(df['date']).dt.date
+    df_out = df.groupby(['sensor_name', 'date']).size().reset_index(name='count')
+    df_out.sort_values(by=['sensor_name', 'date'], inplace=True)
+    
+    # Reorder sites according to first recording
+    # Calculate the first date for each site
+    first_date_per_site = df_out.groupby('sensor_name')['date'].min().reset_index()
+    first_date_per_site = first_date_per_site.rename(columns={'date': 'first_date'})
+
+    # Merge the first date information back to the original DataFrame
+    df_out = df_out.merge(first_date_per_site, on='sensor_name')
+
+    # Sort the DataFrame based on the first date
+    df_out = df_out.sort_values(by='first_date')
+
+    # Plot dataframe
     if ax == None:
         _, ax = plt.subplots(figsize=[8,5])
+
+    if df_out['count'].nunique() == 1:    
+        sns.scatterplot(y=y, x=x, size='count', hue='count', data=df_out, ax=ax,
+                        hue_norm=(0, df_out['count'].max()),
+                        size_norm=(0, df_out['count'].max()))
+    else:
+        sns.scatterplot(y=y, x=x, size='count', hue='count', data=df_out, ax=ax)
         
-    sns.scatterplot(y=y, x=x, 
-                    size='count', 
-                    hue='count', 
-                    data=df_out, ax=ax)
     ax.grid(alpha=0.2)
     ax.set_title(
         f'Sensor Deployment: {df.sensor_name.unique().shape[0]} sites | {df.shape[0]} files')
     plt.xticks(rotation=45)
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0, title='N. Rec')
+    plt.legend(
+        bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0, title='N. Rec')
     plt.tight_layout()
     plt.show()
 
