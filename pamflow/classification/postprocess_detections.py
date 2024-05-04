@@ -4,10 +4,9 @@ import glob
 from utils import merge_annot_files
 
 # Variables
-path_annot = '../../../output/birdnet/detections/'
+path_annot = '../../../2023_SONABIO/Análisis/output/birdnet/detections/'
 min_conf = 0.8
-path_save_spmatrix = '../../../output/birdnet/birdnet_species_matrix_minconf0.8.csv'
-path_save_spmatrix_site = '../../../output/birdnet/birdnet_site-species_matrix_minconf0.8.csv'
+path_save_matrix = '../../../2023_SONABIO/Análisis/output/birdnet/'
 
 # Load data a format it as an abundance matrix with files rows
 flist = glob.glob(os.path.join(path_annot,'**','*.csv'), recursive=True)
@@ -19,14 +18,14 @@ df_clean = df.loc[df.Confidence==1]
 pivot_table = pd.pivot_table(
     df_clean, index='Fname', columns='Scientific name', 
     values='Confidence', aggfunc='sum', fill_value=0)
-
-#pivot_table.reset_index(inplace=True)
-pivot_table.to_csv(path_save_spmatrix)
+pivot_table.index = pivot_table.index.str.replace('.BirdNET.results.csv','.WAV')
+pivot_table.to_csv(os.path.join(path_save_matrix, f'file_spmatrix_{min_conf}conf.csv'))
 
 # Format the table per site
 pivot_table['sensor_name'] = pivot_table.index.str.split('_').str[0].values
 pivot_table_site = pivot_table.groupby('sensor_name').sum()
-pivot_table_site.to_csv(path_save_spmatrix_site)
+pivot_table_site.to_csv(
+    os.path.join(path_save_matrix, f'site_spmatrix_{min_conf}conf.csv'))
 
 
 # Plot species
