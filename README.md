@@ -26,11 +26,17 @@ git clone https://github.com/juansulloa/pamflow.git
 ```
 
 ### 2. Setup a working environment 
-Set up a working environment with Python 3.10 and install the required packages.
+Set up a working environment with Python 3.10.
 
 ```bash
 conda create -n pamenv python=3.10
 conda activate pamenv
+```
+
+Go to the directory where the repository is located and install requirements with pip.
+
+```bash
+cd ~/pamflow
 pip install -r requirements.txt
 ```
 
