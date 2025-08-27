@@ -1,7 +1,7 @@
 > ⚠️ **Warning**  
 > This repository is **no longer maintained**.  
 > Please check out and use the actively maintained repository here:  
-> 👉 [NEW REPOSITORY NAME](https://github.com/pamflow/pamflow)
+> 👉 [pamflow](https://github.com/pamflow/pamflow)
 
 # Soundscapes Analysis Template
 
