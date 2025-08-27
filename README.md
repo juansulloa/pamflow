@@ -1,3 +1,8 @@
+> ⚠️ **Warning**  
+> This repository is **no longer maintained**.  
+> Please check out and use the actively maintained repository here:  
+> 👉 [NEW REPOSITORY NAME](https://github.com/pamflow/pamflow)
+
 # Soundscapes Analysis Template
 
 This repository provides a template for analyzing soundscapes using python. The project was created with the intention of offering an easy-to-use and reproducible framework that can be used by researchers, conservation biologists, citizen scientists, and anyone else interested in ecoacoustics and soundscape ecology.
